@@ -1,6 +1,6 @@
 import sbt.project
 
-lazy val prjName                = "Secret"
+lazy val prjName                = "secret"
 lazy val prjDescription         = "A functional, type-safe and memory-safe class to handle secret values"
 lazy val org                    = "com.github.geirolz"
 lazy val scala213               = "2.13.12"
