@@ -28,7 +28,7 @@ value converting bytes back to `T` re-apply the xor.
 
 ## API and Type safety
 
-While obfuscating the value prevents or at least makes it harder to read the value from memory, Secret class API is designed to avoid leaking
+While obfuscating the value prevents or at least makes it harder to read the value from memory, Secret class API are designed to avoid leaking
 information in other ways. Preventing developers to improperly use the secret value ( logging, etc...).
 
 Example

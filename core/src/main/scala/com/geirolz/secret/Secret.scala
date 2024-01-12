@@ -27,7 +27,7 @@ import scala.util.hashing.{Hashing, MurmurHash3}
   *
   * <b>API and Type safety</b>
   *
-  * While obfuscating the value prevents or at least makes it harder to read the value from memory, Secret class API is designed to avoid leaking
+  * While obfuscating the value prevents or at least makes it harder to read the value from memory, Secret class API are designed to avoid leaking
   * information in other ways. Preventing developers to improperly use the secret value ( logging, etc...).
   *
   * Example
