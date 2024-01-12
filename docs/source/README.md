@@ -49,7 +49,15 @@ To get started with Secret, follow these steps:
 ```sbt
 libraryDependencies += "com.github.geirolz" %% "secret" % "@VERSION@"
 ```
+### Integrations
 
+These integrations aim to enhance the functionality and capabilities of your applications by leveraging the features and
+strengths of both Secret and the respective libraries.
+
+#### Pureconfig
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "@VERSION@"
+```
 ## Adopters
 
 If you are using Secret in your company, please let me know and I'll add it to the list! It means a lot to me.
