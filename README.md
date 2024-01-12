@@ -33,7 +33,7 @@ Example
 To get started with Secret, follow these steps:
 
 1. **Installation:** Include the library as a dependency in your Scala project. You can find the latest version and
-   installation instructions in the [Toolkit GitHub repository](https://github.com/geirolz/secret).
+   installation instructions in the [Secret GitHub repository](https://github.com/geirolz/secret).
 
 ```sbt
 libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.1"
@@ -41,15 +41,15 @@ libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.1"
 
 ## Adopters
 
-If you are using Toolkit in your company, please let me know and I'll add it to the list! It means a lot to me.
+If you are using Secret in your company, please let me know and I'll add it to the list! It means a lot to me.
 
 ## Contributing
 
-We welcome contributions from the open-source community to make Toolkit even better. If you have any bug reports,
+We welcome contributions from the open-source community to make Secret even better. If you have any bug reports,
 feature requests, or suggestions, please submit them via GitHub issues. Pull requests are also welcome.
 
 Before contributing, please read
-our [Contribution Guidelines](https://github.com/geirolz/toolkit/blob/main/CONTRIBUTING.md) to understand the
+our [Contribution Guidelines](https://github.com/geirolz/Secret/blob/main/CONTRIBUTING.md) to understand the
 development process and coding conventions.
 
 Please remember te following:
@@ -59,7 +59,7 @@ Please remember te following:
 
 ## License
 
-Toolkit is released under the [Apache License 2.0](https://github.com/geirolz/toolkit/blob/main/LICENSE).
+Secret is released under the [Apache License 2.0](https://github.com/geirolz/Secret/blob/main/LICENSE).
 Feel free to use it in your open-source or commercial projects.
 
 ## Acknowledgements

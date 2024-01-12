@@ -1,6 +1,6 @@
-# Contributing to Toolkit
+# Contributing to Secret
 
-Welcome to Toolkit! We appreciate your interest in contributing to this open-source library. By contributing, you can
+Welcome to Secret! We appreciate your interest in contributing to this open-source library. By contributing, you can
 help improve the functionality, usability, and quality of the library for the entire community. This guide outlines the
 contribution process and provides guidelines for submitting bug reports, feature requests, and pull requests.
 
@@ -12,10 +12,10 @@ Please remember te following:
 
 ### Bug Reports
 
-If you encounter a bug or unexpected behavior while using Toolkit, please follow these steps to submit a bug report:
+If you encounter a bug or unexpected behavior while using Secret, please follow these steps to submit a bug report:
 
 1. **Check Existing Issues:** Before submitting a new bug report, please search
-   the [GitHub Issues](https://github.com/geirolz/toolkit/issues) to see if a similar issue has already been reported.
+   the [GitHub Issues](https://github.com/geirolz/secret/issues) to see if a similar issue has already been reported.
 
 2. **Provide Details:** When submitting a bug report, include relevant information such as a clear description of the
    problem, steps to reproduce the issue, and any error messages or logs encountered. If possible, provide a minimal,
@@ -26,11 +26,11 @@ If you encounter a bug or unexpected behavior while using Toolkit, please follow
 
 ### Feature Requests
 
-If you have an idea for a new feature or enhancement that you would like to see in Toolkit, please follow these steps to
+If you have an idea for a new feature or enhancement that you would like to see in Secret, please follow these steps to
 submit a feature request:
 
 1. **Check Existing Requests:** Before submitting a new feature request, please search
-   the [GitHub Issues](https://github.com/geirolz/toolkit/issues) to see if a similar request already exists. If it
+   the [GitHub Issues](https://github.com/geirolz/secret/issues) to see if a similar request already exists. If it
    does, you can add your input and support to the existing discussion.
 
 2. **Provide a Clear Description:** When submitting a feature request, clearly describe the problem you are trying to
@@ -42,10 +42,10 @@ submit a feature request:
 
 ### Pull Requests
 
-We welcome pull requests for bug fixes, new features, or improvements to Toolkit. To submit a pull request, please
+We welcome pull requests for bug fixes, new features, or improvements to Secret. To submit a pull request, please
 follow these guidelines:
 
-1. **Fork the Repository:** Start by forking the [Toolkit repository](https://github.com/geirolz/toolkit) to your GitHub
+1. **Fork the Repository:** Start by forking the [Secret repository](https://github.com/geirolz/secret) to your GitHub
    account.
 
 2. **Create a Branch:** Create a new branch in your forked repository to work on your changes. Use a descriptive name
@@ -62,9 +62,9 @@ follow these guidelines:
 
 ## Code of Conduct
 
-Please note that by participating in the Toolkit project, you are expected to adhere to
-the [Code of Conduct](https://github.com/geirolz/toolkit/blob/main/CODE_OF_CONDUCT.md). We encourage respectful and
+Please note that by participating in the Secret project, you are expected to adhere to
+the [Code of Conduct](https://github.com/geirolz/secret/blob/main/CODE_OF_CONDUCT.md). We encourage respectful and
 inclusive participation in our community.
 
-Thank you for your interest in contributing to Toolkit. Your contributions are highly appreciated and help make the
+Thank you for your interest in contributing to Secret. Your contributions are highly appreciated and help make the
 library even better for everyone!
