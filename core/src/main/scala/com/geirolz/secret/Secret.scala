@@ -149,7 +149,7 @@ sealed trait Secret[T] extends AutoCloseable {
 
 object Secret extends Instances {
 
-  val placeHolder = "** SECRET **"
+  val placeHolder: String = "** SECRET **"
   private[secret] type PlainValueBuffer      = ByteBuffer
   private[secret] type ObfuscatedValueBuffer = ByteBuffer
   private[secret] type KeyBuffer             = ByteBuffer
