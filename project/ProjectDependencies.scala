@@ -33,16 +33,10 @@ object ProjectDependencies {
   }
 
   object Plugins {
-    val compilerPluginsFor2_13: Seq[ModuleID] = Seq(
-      compilerPlugin("org.typelevel" %% "kind-projector"     % "0.13.2" cross CrossVersion.full),
-      compilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.1")
-    )
-
-    val compilerPluginsFor3: Seq[ModuleID] = Nil
+    val compilerPlugins: Seq[ModuleID] = Nil
   }
 
   object Docs {
-    lazy val dedicated_2_13: Seq[ModuleID] = Nil
-    lazy val dedicated_3_2: Seq[ModuleID]  = Nil
+    lazy val dedicated: Seq[ModuleID] = Nil
   }
 }
