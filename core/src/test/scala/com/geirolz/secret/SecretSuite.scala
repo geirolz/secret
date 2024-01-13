@@ -1,6 +1,6 @@
 package com.geirolz.secret
 
-import com.geirolz.secret.Secret.{ObfuserTuple, SecretNoLongerValid}
+import com.geirolz.secret.Secret.{ObfuscatorTuple, SecretNoLongerValid}
 import org.scalacheck.Arbitrary
 import org.scalacheck.Prop.forAll
 
@@ -9,17 +9,17 @@ import scala.util.{Failure, Try}
 
 class SecretSuite extends munit.ScalaCheckSuite {
 
-  testObfuserTupleFor[String]
-  testObfuserTupleFor[Int]
-  testObfuserTupleFor[Long]
-  testObfuserTupleFor[Short]
-  testObfuserTupleFor[Char]
-  testObfuserTupleFor[Byte]
-  testObfuserTupleFor[Float]
-  testObfuserTupleFor[Double]
-  testObfuserTupleFor[Boolean]
-  testObfuserTupleFor[BigInt]
-  testObfuserTupleFor[BigDecimal]
+  testObfuscatorTupleFor[String]
+  testObfuscatorTupleFor[Int]
+  testObfuscatorTupleFor[Long]
+  testObfuscatorTupleFor[Short]
+  testObfuscatorTupleFor[Char]
+  testObfuscatorTupleFor[Byte]
+  testObfuscatorTupleFor[Float]
+  testObfuscatorTupleFor[Double]
+  testObfuscatorTupleFor[Boolean]
+  testObfuscatorTupleFor[BigInt]
+  testObfuscatorTupleFor[BigDecimal]
 
   test("Simple Secret String") {
     Secret("TEST").useAndDestroyE(_ => ())
@@ -59,7 +59,7 @@ class SecretSuite extends munit.ScalaCheckSuite {
     ).useAndDestroyE(_ => ())
   }
 
-  private def testObfuserTupleFor[T: Arbitrary: ObfuserTuple](implicit c: ClassTag[T]): Unit = {
+  private def testObfuscatorTupleFor[T: Arbitrary: ObfuscatorTuple](implicit c: ClassTag[T]): Unit = {
 
     val typeName = c.runtimeClass.getSimpleName.capitalize
 

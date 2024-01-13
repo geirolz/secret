@@ -1,7 +1,7 @@
 package com.geirolz.secret
 
 import cats.{Eq, MonadError, Show}
-import com.geirolz.secret.Secret.{DeObfuser, MonadSecretError, Obfuser, ObfuserTuple, PlainValueBuffer, SecretNoLongerValid}
+import com.geirolz.secret.Secret.{DeObfuscator, MonadSecretError, Obfuscator, ObfuscatorTuple, PlainValueBuffer, SecretNoLongerValid}
 import com.geirolz.secret.utils.BytesUtils.{clearByteArray, clearByteBuffer}
 
 import java.nio.ByteBuffer
@@ -19,10 +19,10 @@ import scala.util.hashing.{Hashing, MurmurHash3}
   *
   * <b>Obfuscation</b>
   *
-  * The value is obfuscated when creating the `Secret` instance using an implicit `Obfuser`which, by default, transform the value into a xor-ed
+  * The value is obfuscated when creating the `Secret` instance using an implicit `Obfuscator` which, by default, transform the value into a xor-ed
   * `ByteBuffer` witch store bytes outside the JVM using direct memory access.
   *
-  * The obfuscated value is de-obfuscated using an implicit `DeObfuser` instance every time the method `use` is invoked which returns the original
+  * The obfuscated value is de-obfuscated using an implicit `DeObfuscator` instance every time the method `use` is invoked which returns the original
   * value converting bytes back to `T` re-apply the xor.
   *
   * <b>API and Type safety</b>
@@ -53,7 +53,7 @@ sealed trait Secret[T] extends AutoCloseable {
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
     * other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  def evalUse[F[_]: MonadSecretError, U](f: T => F[U])(implicit deObfuser: DeObfuser[T]): F[U]
+  def evalUse[F[_]: MonadSecretError, U](f: T => F[U])(implicit deObfuscator: DeObfuscator[T]): F[U]
 
   /** Destroy the secret value by filling the obfuscated value with '\0'.
     *
@@ -75,7 +75,7 @@ sealed trait Secret[T] extends AutoCloseable {
     *
     * This hash code is NOT the hash code of the original value. It is the hash code of the obfuscated value.
     *
-    * Since the obfuscated value based on a random key, the hash code will be different every time. This function is not deterministic.
+    * Since the obfuscated value is based on a random key, the hash code will be different every time. This function is not deterministic.
     *
     * @return
     *   the hash code of this secret. If the secret is destroyed it will return `-1`.
@@ -90,7 +90,7 @@ sealed trait Secret[T] extends AutoCloseable {
     *
     * Throws `SecretNoLongerValid` if the secret is destroyed
     */
-  final def unsafeUse[U](f: T => U)(implicit deObfuser: DeObfuser[T]): U =
+  final def unsafeUse[U](f: T => U)(implicit deObfuscator: DeObfuscator[T]): U =
     use[Either[SecretNoLongerValid, *], U](f).fold(throw _, identity)
 
   /** Apply `f` with the de-obfuscated value WITHOUT destroying it.
@@ -100,11 +100,11 @@ sealed trait Secret[T] extends AutoCloseable {
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
     * other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  final def use[F[_]: MonadSecretError, U](f: T => U)(implicit deObfuser: DeObfuser[T]): F[U] =
+  final def use[F[_]: MonadSecretError, U](f: T => U)(implicit deObfuscator: DeObfuscator[T]): F[U] =
     evalUse[F, U](f.andThen(_.pure[F]))
 
   /** Alias for `use` with `Either[Throwable, *]` */
-  final def useE[U](f: T => U)(implicit deObfuser: DeObfuser[T]): Either[SecretNoLongerValid, U] =
+  final def useE[U](f: T => U)(implicit deObfuscator: DeObfuscator[T]): Either[SecretNoLongerValid, U] =
     use[Either[SecretNoLongerValid, *], U](f)
 
   /** Apply `f` with the de-obfuscated value and then destroy the secret value by invoking `destroy` method.
@@ -112,11 +112,11 @@ sealed trait Secret[T] extends AutoCloseable {
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
     * other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  final def useAndDestroy[F[_]: MonadSecretError, U](f: T => U)(implicit deObfuser: DeObfuser[T]): F[U] =
+  final def useAndDestroy[F[_]: MonadSecretError, U](f: T => U)(implicit deObfuscator: DeObfuscator[T]): F[U] =
     evalUseAndDestroy[F, U](f.andThen(_.pure[F]))
 
   /** Alias for `useAndDestroy` with `Either[Throwable, *]` */
-  final def useAndDestroyE[U](f: T => U)(implicit deObfuser: DeObfuser[T]): Either[SecretNoLongerValid, U] =
+  final def useAndDestroyE[U](f: T => U)(implicit deObfuscator: DeObfuscator[T]): Either[SecretNoLongerValid, U] =
     useAndDestroy[Either[SecretNoLongerValid, *], U](f)
 
   /** Apply `f` with the de-obfuscated value and then destroy the secret value by invoking `destroy` method.
@@ -124,7 +124,7 @@ sealed trait Secret[T] extends AutoCloseable {
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
     * other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  final def evalUseAndDestroy[F[_]: MonadSecretError, U](f: T => F[U])(implicit deObfuser: DeObfuser[T]): F[U] =
+  final def evalUseAndDestroy[F[_]: MonadSecretError, U](f: T => F[U])(implicit deObfuscator: DeObfuscator[T]): F[U] =
     evalUse(f).map { u => destroy(); u }
 
   /** Alias for `destroy` */
@@ -135,7 +135,7 @@ sealed trait Secret[T] extends AutoCloseable {
     * @return
     *   `true` if the secrets are equal, `false` if they are not equal or if one of the secret is destroyed
     */
-  final def isEquals(that: Secret[T])(implicit deObfuser: DeObfuser[T]): Boolean =
+  final def isEquals(that: Secret[T])(implicit deObfuscator: DeObfuscator[T]): Boolean =
     evalUse[Try, Boolean](value => that.use[Try, Boolean](_ == value)).getOrElse(false)
 
   /** Always returns `false`, use `isEqual` instead */
@@ -184,17 +184,17 @@ object Secret extends Instances {
     }
   }
 
-  def apply[T: Obfuser](value: T): Secret[T] = {
+  def apply[T: Obfuscator](value: T): Secret[T] = {
 
-    var bufferTuple: KeyValueTuple = Obfuser[T].apply(value)
+    var bufferTuple: KeyValueTuple = Obfuscator[T].apply(value)
 
     new Secret[T] {
 
-      override def evalUse[F[_]: MonadSecretError, U](f: T => F[U])(implicit deObfuser: DeObfuser[T]): F[U] =
+      override def evalUse[F[_]: MonadSecretError, U](f: T => F[U])(implicit deObfuscator: DeObfuscator[T]): F[U] =
         if (isDestroyed)
           implicitly[MonadSecretError[F]].raiseError(SecretNoLongerValid())
         else
-          f(deObfuser(bufferTuple))
+          f(deObfuscator(bufferTuple))
 
       override def destroy(): Unit = {
         bufferTuple.destroy()
@@ -209,21 +209,21 @@ object Secret extends Instances {
     }
   }
 
-  // ---------------- OBFUSER ----------------
-  trait Obfuser[P] extends (P => KeyValueTuple)
-  object Obfuser {
+  // ---------------- OBFUSCATOR ----------------
+  trait Obfuscator[P] extends (P => KeyValueTuple)
+  object Obfuscator {
 
-    def apply[P: Obfuser]: Obfuser[P] =
-      implicitly[Obfuser[P]]
+    def apply[P: Obfuscator]: Obfuscator[P] =
+      implicitly[Obfuscator[P]]
 
-    /** Create a new Obfuser which obfuscate value using a custom formula.
+    /** Create a new Obfuscator which obfuscate value using a custom formula.
       *
       * @param f
       *   the function which obfuscate the value
       */
-    def of[P](f: P => KeyValueTuple): Obfuser[P] = f(_)
+    def of[P](f: P => KeyValueTuple): Obfuscator[P] = f(_)
 
-    /** Create a new Obfuser which obfuscate value using a Xor formula.
+    /** Create a new Obfuscator which obfuscate value using a Xor formula.
       *
       * Formula: `plainValue[i] ^ (key[len - i] ^ (len * i))`
       *
@@ -235,7 +235,7 @@ object Secret extends Instances {
       *   //Obfuscated = [0x9c][0x12][0xae][0x83][0x2e]
       * }}}
       */
-    def default[P](f: P => PlainValueBuffer): Obfuser[P] = {
+    def default[P](f: P => PlainValueBuffer): Obfuscator[P] = {
 
       def genKeyBuffer(secureRandom: SecureRandom, size: Int): KeyBuffer = {
         val keyBuffer = ByteBuffer.allocateDirect(size)
@@ -271,20 +271,20 @@ object Secret extends Instances {
     }
   }
 
-  trait DeObfuser[P] extends (KeyValueTuple => P)
-  object DeObfuser {
+  trait DeObfuscator[P] extends (KeyValueTuple => P)
+  object DeObfuscator {
 
-    def apply[P: DeObfuser]: DeObfuser[P] =
-      implicitly[DeObfuser[P]]
+    def apply[P: DeObfuscator]: DeObfuscator[P] =
+      implicitly[DeObfuscator[P]]
 
-    /** Create a new DeObfuser which de-obfuscate value using a custom formula.
+    /** Create a new DeObfuscator which de-obfuscate value using a custom formula.
       *
       * @param f
       *   the function which de-obfuscate the value
       */
-    def of[P](f: KeyValueTuple => P): DeObfuser[P] = f(_)
+    def of[P](f: KeyValueTuple => P): DeObfuscator[P] = f(_)
 
-    /** Create a new DeObfuser which de-obfuscate value using a Xor formula.
+    /** Create a new DeObfuscator which de-obfuscate value using a Xor formula.
       *
       * Formula: `obfuscated[i] ^ (key[len - i] ^ (len * i))`
       *
@@ -296,7 +296,7 @@ object Secret extends Instances {
       *   //Plain      = [0x01][0x02][0x03][0x04][0x05]
       * }}}
       */
-    def default[P](f: PlainValueBuffer => P): DeObfuser[P] =
+    def default[P](f: PlainValueBuffer => P): DeObfuscator[P] =
       of { bufferTuple =>
         val capacity: Int                      = bufferTuple.roKeyBuffer.capacity()
         var plainValueBuffer: PlainValueBuffer = ByteBuffer.allocateDirect(capacity)
@@ -318,14 +318,14 @@ object Secret extends Instances {
       }
   }
 
-  case class ObfuserTuple[P](obfuser: Obfuser[P], deObfuser: DeObfuser[P]) {
-    def bimap[U](fO: U => P, fD: P => U): ObfuserTuple[U] =
-      ObfuserTuple[U](
-        obfuser   = Obfuser.of(plain => obfuser(fO(plain))),
-        deObfuser = DeObfuser.of(bufferTuple => fD(deObfuser(bufferTuple)))
+  case class ObfuscatorTuple[P](obfuscator: Obfuscator[P], deObfuscator: DeObfuscator[P]) {
+    def bimap[U](fO: U => P, fD: P => U): ObfuscatorTuple[U] =
+      ObfuscatorTuple[U](
+        obfuscator   = Obfuscator.of(plain => obfuscator(fO(plain))),
+        deObfuscator = DeObfuscator.of(bufferTuple => fD(deObfuscator(bufferTuple)))
       )
   }
-  object ObfuserTuple {
+  object ObfuscatorTuple {
 
     /** https://westonal.medium.com/protecting-strings-in-jvm-memory-84c365f8f01c
       *
@@ -336,72 +336,72 @@ object Secret extends Instances {
       * says a direct buffer may exist outside of the managed heap but it is at least pinned memory, as they are safe for I/O with non JVM code so the
       * GC won’t be moving this buffer and making copies.
       */
-    def withXorDirectByteBuffer[P](capacity: Int)(
+    def withDefaultDirectByteBuffer[P](capacity: Int)(
       fillBuffer: ByteBuffer => P => ByteBuffer,
       readBuffer: ByteBuffer => P
-    ): ObfuserTuple[P] =
-      ObfuserTuple(
-        obfuser   = Obfuser.default((plainValue: P) => fillBuffer(ByteBuffer.allocateDirect(capacity)).apply(plainValue)),
-        deObfuser = DeObfuser.default((buffer: PlainValueBuffer) => readBuffer(buffer.rewind().asReadOnlyBuffer()))
+    ): ObfuscatorTuple[P] =
+      ObfuscatorTuple(
+        obfuscator   = Obfuscator.default((plainValue: P) => fillBuffer(ByteBuffer.allocateDirect(capacity)).apply(plainValue)),
+        deObfuscator = DeObfuscator.default((buffer: PlainValueBuffer) => readBuffer(buffer.rewind().asReadOnlyBuffer()))
       )
 
-    def xorStringObfuserTuple(charset: Charset): ObfuserTuple[String] =
-      xorBytesArrayObfuserTuple.bimap(_.getBytes(charset), new String(_, charset))
+    def defaultStringObfuscatorTuple(charset: Charset): ObfuscatorTuple[String] =
+      defaultBytesArrayObfuscatorTuple.bimap(_.getBytes(charset), new String(_, charset))
   }
 }
 sealed trait Instances {
 
-  implicit val xorBytesArrayObfuserTuple: ObfuserTuple[Array[Byte]] =
-    ObfuserTuple[Array[Byte]](
-      obfuser = Obfuser.default((plainBytes: Array[Byte]) => ByteBuffer.allocateDirect(plainBytes.length).put(plainBytes)),
-      deObfuser = DeObfuser.default((plainBuffer: PlainValueBuffer) => {
+  implicit val defaultBytesArrayObfuscatorTuple: ObfuscatorTuple[Array[Byte]] =
+    ObfuscatorTuple[Array[Byte]](
+      obfuscator = Obfuscator.default((plainBytes: Array[Byte]) => ByteBuffer.allocateDirect(plainBytes.length).put(plainBytes)),
+      deObfuscator = DeObfuscator.default((plainBuffer: PlainValueBuffer) => {
         val result = new Array[Byte](plainBuffer.capacity())
         plainBuffer.rewind().get(result)
         result
       })
     )
 
-  implicit val xorStdCharsetStringObfuserTuple: ObfuserTuple[String] =
-    ObfuserTuple.xorStringObfuserTuple(Charset.defaultCharset())
+  implicit val defaultStdCharsetStringObfuscatorTuple: ObfuscatorTuple[String] =
+    ObfuscatorTuple.defaultStringObfuscatorTuple(Charset.defaultCharset())
 
-  implicit val xorByteObfuserTuple: ObfuserTuple[Byte] =
-    ObfuserTuple.withXorDirectByteBuffer(1)(_.put, _.get)
+  implicit val xorByteObfuscatorTuple: ObfuscatorTuple[Byte] =
+    ObfuscatorTuple.withDefaultDirectByteBuffer(1)(_.put, _.get)
 
-  implicit val xorCharObfuserTuple: ObfuserTuple[Char] =
-    ObfuserTuple.withXorDirectByteBuffer(2)(_.putChar, _.getChar)
+  implicit val defaultCharObfuscatorTuple: ObfuscatorTuple[Char] =
+    ObfuscatorTuple.withDefaultDirectByteBuffer(2)(_.putChar, _.getChar)
 
-  implicit val xorShortObfuserTuple: ObfuserTuple[Short] =
-    ObfuserTuple.withXorDirectByteBuffer(2)(_.putShort, _.getShort)
+  implicit val defaultShortObfuscatorTuple: ObfuscatorTuple[Short] =
+    ObfuscatorTuple.withDefaultDirectByteBuffer(2)(_.putShort, _.getShort)
 
-  implicit val xorIntObfuserTuple: ObfuserTuple[Int] =
-    ObfuserTuple.withXorDirectByteBuffer(4)(_.putInt, _.getInt)
+  implicit val defaultIntObfuscatorTuple: ObfuscatorTuple[Int] =
+    ObfuscatorTuple.withDefaultDirectByteBuffer(4)(_.putInt, _.getInt)
 
-  implicit val xorLongObfuserTuple: ObfuserTuple[Long] =
-    ObfuserTuple.withXorDirectByteBuffer(8)(_.putLong, _.getLong)
+  implicit val defaultLongObfuscatorTuple: ObfuscatorTuple[Long] =
+    ObfuscatorTuple.withDefaultDirectByteBuffer(8)(_.putLong, _.getLong)
 
-  implicit val xorFloatObfuserTuple: ObfuserTuple[Float] =
-    ObfuserTuple.withXorDirectByteBuffer(4)(_.putFloat, _.getFloat)
+  implicit val defaultFloatObfuscatorTuple: ObfuscatorTuple[Float] =
+    ObfuscatorTuple.withDefaultDirectByteBuffer(4)(_.putFloat, _.getFloat)
 
-  implicit val xorDoubleObfuserTuple: ObfuserTuple[Double] =
-    ObfuserTuple.withXorDirectByteBuffer(8)(_.putDouble, _.getDouble)
+  implicit val defaultDoubleObfuscatorTuple: ObfuscatorTuple[Double] =
+    ObfuscatorTuple.withDefaultDirectByteBuffer(8)(_.putDouble, _.getDouble)
 
-  implicit val xorBoolObfuserTuple: ObfuserTuple[Boolean] =
-    ObfuserTuple.withXorDirectByteBuffer(1)(
+  implicit val defaultBoolObfuscatorTuple: ObfuscatorTuple[Boolean] =
+    ObfuscatorTuple.withDefaultDirectByteBuffer(1)(
       (b: PlainValueBuffer) => (v: Boolean) => b.put(if (v) 1.toByte else 0.toByte),
       _.get == 1.toByte
     )
 
-  implicit val bigIntObfuserTuple: ObfuserTuple[BigInt] =
-    xorBytesArrayObfuserTuple.bimap(_.toByteArray, BigInt(_))
+  implicit val defaultBigIntObfuscatorTuple: ObfuscatorTuple[BigInt] =
+    defaultBytesArrayObfuscatorTuple.bimap(_.toByteArray, BigInt(_))
 
-  implicit val bigDecimalObfuserTuple: ObfuserTuple[BigDecimal] =
-    xorStdCharsetStringObfuserTuple.bimap(_.toString, str => BigDecimal(str))
+  implicit val defaultBigDecimalObfuscatorTuple: ObfuscatorTuple[BigDecimal] =
+    defaultStdCharsetStringObfuscatorTuple.bimap(_.toString, str => BigDecimal(str))
 
-  implicit def unzipObfuserTupleToObfuser[P: ObfuserTuple]: Obfuser[P] =
-    implicitly[ObfuserTuple[P]].obfuser
+  implicit def unzipObfuscatorTupleToObfuscator[P: ObfuscatorTuple]: Obfuscator[P] =
+    implicitly[ObfuscatorTuple[P]].obfuscator
 
-  implicit def unzipObfuserTupleTodeObfuser[P: ObfuserTuple]: DeObfuser[P] =
-    implicitly[ObfuserTuple[P]].deObfuser
+  implicit def unzipObfuscatorTupleToDeObfuscator[P: ObfuscatorTuple]: DeObfuscator[P] =
+    implicitly[ObfuscatorTuple[P]].deObfuscator
 
   implicit def hashing[T]: Hashing[Secret[T]] =
     Hashing.fromFunction(_.hashCode())
