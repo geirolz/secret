@@ -46,9 +46,17 @@ To get started with Secret, follow these steps:
 1. **Installation:** Include the library as a dependency in your Scala project. You can find the latest version and
    installation instructions in the [Secret GitHub repository](https://github.com/geirolz/secret).
 
+
+Scala2.13
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret_3" % "<version>"
+```
+
+Scala3
 ```sbt
 libraryDependencies += "com.github.geirolz" %% "secret" % "<version>"
 ```
+
 ### Integrations
 
 These integrations aim to enhance the functionality and capabilities of your applications by leveraging the features and
