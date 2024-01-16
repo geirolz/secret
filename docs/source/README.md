@@ -19,10 +19,10 @@ Please, drop a ⭐️ if you are interested in this project and you want to supp
 
 ## Obfuscation
 
-The value is obfuscated when creating the `Secret` instance using an implicit `Obfuscator`which, by default, transform the value into a xor-ed
+The value is obfuscated when creating the `Secret` instance using the implicit `ObfuscationStrategy` which, by default, transform the value into a xor-ed
 `ByteBuffer` witch store bytes outside the JVM using direct memory access.
 
-The obfuscated value is de-obfuscated using an implicit `DeObfuscator` instance every time the method `use` is invoked which returns the original
+The obfuscated value is de-obfuscated using the implicit `ObfuscationStrategy` instance every time the method `use` is invoked which returns the original
 value converting bytes back to `T` re-apply the xor.
 
 
