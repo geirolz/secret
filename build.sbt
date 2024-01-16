@@ -3,8 +3,8 @@ import sbt.project
 lazy val prjName                = "secret"
 lazy val prjDescription         = "A functional, type-safe and memory-safe class to handle secret values"
 lazy val org                    = "com.github.geirolz"
-lazy val scala32                = "3.3.1"
-lazy val supportedScalaVersions = List(scala32)
+lazy val scala33                = "3.3.1"
+lazy val supportedScalaVersions = List(scala33)
 
 //## global project to no publish ##
 val copyReadMe = taskKey[Unit]("Copy generated README to main folder.")
