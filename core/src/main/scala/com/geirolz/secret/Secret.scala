@@ -1,15 +1,11 @@
 package com.geirolz.secret
 
-import cats.{Eq, MonadError, Show}
-import com.geirolz.secret.Secret.{DeObfuscator, MonadSecretError, Obfuscator, ObfuscatorTuple, PlainValueBuffer, SecretNoLongerValid}
-import com.geirolz.secret.utils.BytesUtils.{clearByteArray, clearByteBuffer}
+import cats.{Eq, Show}
+import com.geirolz.secret.Secret.*
+import com.geirolz.secret.internal.KeyValueBuffer
 
-import java.nio.ByteBuffer
-import java.nio.charset.Charset
-import java.security.SecureRandom
 import scala.util.Try
-import scala.util.control.NoStackTrace
-import scala.util.hashing.{Hashing, MurmurHash3}
+import scala.util.hashing.Hashing
 
 /** Memory-safe and type-safe secret value of type `T`.
   *
@@ -35,14 +31,8 @@ import scala.util.hashing.{Hashing, MurmurHash3}
   *   val secretString: Secret[String]  = Secret("my_password")
   *   val database: F[Database]         = secretString.use(password => initDb(password))
   * }}}
-  *
-  * ** Credits **
-  *   - Personal experience in companies where I worked
-  *   - https://westonal.medium.com/protecting-strings-in-jvm-memory-84c365f8f01c
-  *   - VisualVM
-  *   - ChatGPT
   */
-sealed trait Secret[T] extends AutoCloseable:
+trait Secret[T] extends AutoCloseable:
 
   import cats.syntax.all.*
 
@@ -146,37 +136,11 @@ sealed trait Secret[T] extends AutoCloseable:
   /** @return
     *   always returns a static place holder string "** SECRET **" to avoid leaking information
     */
-  final override def toString: String = Secret.placeHolder
+  final override def toString: String = "** SECRET **"
 
-object Secret extends Instances:
-
-  val placeHolder: String = "** SECRET **"
-  private[secret] type PlainValueBuffer      = ByteBuffer
-  private[secret] type ObfuscatedValueBuffer = ByteBuffer
-  private[secret] type KeyBuffer             = ByteBuffer
-  private type MonadSecretError[F[_]]        = MonadError[F, ? >: SecretNoLongerValid]
-
-  case class SecretNoLongerValid() extends RuntimeException("This secret value is no longer valid") with NoStackTrace
-  private[Secret] class KeyValueTuple(_keyBuffer: KeyBuffer, _obfuscatedBuffer: ObfuscatedValueBuffer):
-    val roKeyBuffer: KeyBuffer                    = _keyBuffer.asReadOnlyBuffer()
-    val roObfuscatedBuffer: ObfuscatedValueBuffer = _obfuscatedBuffer.asReadOnlyBuffer()
-    lazy val obfuscatedHashCode: Int =
-      val capacity           = roObfuscatedBuffer.capacity()
-      var bytes: Array[Byte] = new scala.Array[Byte](capacity)
-      for (i <- 0 until capacity)
-        bytes(i) = roObfuscatedBuffer.get(i)
-
-      val hashCode: Int = MurmurHash3.bytesHash(bytes)
-      bytes = clearByteArray(bytes)
-      hashCode
-
-    def destroy(): Unit =
-      clearByteBuffer(_keyBuffer)
-      clearByteBuffer(_obfuscatedBuffer)
-      ()
-
+object Secret extends SecretInstances with ObfuscatorInstances:
   def apply[T: Obfuscator](value: T): Secret[T] =
-    var bufferTuple: KeyValueTuple = Obfuscator[T].apply(value)
+    var bufferTuple: KeyValueBuffer = Obfuscator[T].apply(value)
     new Secret[T] {
 
       override def evalUse[F[_]: MonadSecretError, U](f: T => F[U])(using deObfuscator: DeObfuscator[T]): F[U] =
@@ -196,191 +160,7 @@ object Secret extends Instances:
         if (isDestroyed) -1 else bufferTuple.obfuscatedHashCode
     }
 
-  // ---------------- OBFUSCATOR ----------------
-  trait Obfuscator[P] extends (P => KeyValueTuple)
-  object Obfuscator:
-
-    def apply[P: Obfuscator]: Obfuscator[P] =
-      summon[Obfuscator[P]]
-
-    /** Create a new Obfuscator which obfuscate value using a custom formula.
-      *
-      * @param f
-      *   the function which obfuscate the value
-      */
-    def of[P](f: P => KeyValueTuple): Obfuscator[P] = f(_)
-
-    /** Create a new Obfuscator which obfuscate value using a Xor formula.
-      *
-      * Formula: `plainValue[i] ^ (key[len - i] ^ (len * i))`
-      *
-      * Example:
-      * {{{
-      *   //Index      =    1     2     3     4    5
-      *   //Plain      = [0x01][0x02][0x03][0x04][0x05]
-      *   //Key        = [0x9d][0x10][0xad][0x87][0x2b]
-      *   //Obfuscated = [0x9c][0x12][0xae][0x83][0x2e]
-      * }}}
-      */
-    def default[P](f: P => PlainValueBuffer): Obfuscator[P] = {
-
-      def genKeyBuffer(secureRandom: SecureRandom, size: Int): KeyBuffer =
-        val keyBuffer = ByteBuffer.allocateDirect(size)
-        var keyArray  = new Array[Byte](size)
-        secureRandom.nextBytes(keyArray)
-        keyBuffer.put(keyArray)
-
-        // clear keyArray
-        keyArray = clearByteArray(keyArray)
-
-        keyBuffer
-
-      of { (plain: P) =>
-        val secureRandom: SecureRandom         = new SecureRandom()
-        var plainBuffer: PlainValueBuffer      = f(plain)
-        val capacity: Int                      = plainBuffer.capacity()
-        val keyBuffer: KeyBuffer               = genKeyBuffer(secureRandom, capacity)
-        val valueBuffer: ObfuscatedValueBuffer = ByteBuffer.allocateDirect(capacity)
-        for (i <- 0 until capacity)
-          valueBuffer.put(
-            (plainBuffer.get(i) ^ (keyBuffer.get(capacity - 1 - i) ^ (capacity * i).toByte)).toByte
-          )
-
-        // clear plainBuffer
-        plainBuffer = clearByteBuffer(plainBuffer)
-
-        new KeyValueTuple(keyBuffer, valueBuffer)
-      }
-    }
-
-  trait DeObfuscator[P] extends (KeyValueTuple => P)
-  object DeObfuscator:
-
-    def apply[P: DeObfuscator]: DeObfuscator[P] =
-      summon[DeObfuscator[P]]
-
-    /** Create a new DeObfuscator which de-obfuscate value using a custom formula.
-      *
-      * @param f
-      *   the function which de-obfuscate the value
-      */
-    def of[P](f: KeyValueTuple => P): DeObfuscator[P] = f(_)
-
-    /** Create a new DeObfuscator which de-obfuscate value using a Xor formula.
-      *
-      * Formula: `obfuscated[i] ^ (key[len - i] ^ (len * i))`
-      *
-      * Example:
-      * {{{
-      *   //Index      =    1     2     3     4    5
-      *   //Obfuscated = [0x9c][0x12][0xae][0x83][0x2e]
-      *   //Key        = [0x9d][0x10][0xad][0x87][0x2b]
-      *   //Plain      = [0x01][0x02][0x03][0x04][0x05]
-      * }}}
-      */
-    def default[P](f: PlainValueBuffer => P): DeObfuscator[P] =
-      of { bufferTuple =>
-        val capacity: Int                      = bufferTuple.roKeyBuffer.capacity()
-        var plainValueBuffer: PlainValueBuffer = ByteBuffer.allocateDirect(capacity)
-
-        for (i <- 0 until capacity)
-          plainValueBuffer.put(
-            (bufferTuple.roObfuscatedBuffer.get(i) ^ (bufferTuple.roKeyBuffer.get(capacity - 1 - i) ^ (capacity * i).toByte)).toByte
-          )
-
-        val result = f(plainValueBuffer.asReadOnlyBuffer())
-
-        // clear plainValueBuffer
-        plainValueBuffer = clearByteBuffer(plainValueBuffer)
-
-        result
-      }
-
-  case class ObfuscatorTuple[P](obfuscator: Obfuscator[P], deObfuscator: DeObfuscator[P]):
-    def bimap[U](fO: U => P, fD: P => U): ObfuscatorTuple[U] =
-      ObfuscatorTuple[U](
-        obfuscator   = Obfuscator.of(plain => obfuscator(fO(plain))),
-        deObfuscator = DeObfuscator.of(bufferTuple => fD(deObfuscator(bufferTuple)))
-      )
-
-  object ObfuscatorTuple:
-
-    /** https://westonal.medium.com/protecting-strings-in-jvm-memory-84c365f8f01c
-      *
-      * We require a buffer that’s outside of the GCs control. This will ensure that multiple copies cannot be left beyond the time we are done with
-      * it.
-      *
-      * For this we can use ByteBuffer.allocateDirect The documentation for https://docs.oracle.com/javase/7/docs/api/java/nio/ByteBuffer.html only
-      * says a direct buffer may exist outside of the managed heap but it is at least pinned memory, as they are safe for I/O with non JVM code so the
-      * GC won’t be moving this buffer and making copies.
-      */
-    def withDefaultDirectByteBuffer[P](capacity: Int)(
-      fillBuffer: ByteBuffer => P => ByteBuffer,
-      readBuffer: ByteBuffer => P
-    ): ObfuscatorTuple[P] =
-      ObfuscatorTuple(
-        obfuscator   = Obfuscator.default((plainValue: P) => fillBuffer(ByteBuffer.allocateDirect(capacity)).apply(plainValue)),
-        deObfuscator = DeObfuscator.default((buffer: PlainValueBuffer) => readBuffer(buffer.rewind().asReadOnlyBuffer()))
-      )
-
-    def defaultStringObfuscatorTuple(charset: Charset): ObfuscatorTuple[String] =
-      summon[ObfuscatorTuple[Array[Byte]]].bimap(_.getBytes(charset), new String(_, charset))
-
-end Secret
-
-private[secret] sealed trait Instances:
-
-  given ObfuscatorTuple[Array[Byte]] =
-    ObfuscatorTuple[Array[Byte]](
-      obfuscator = Obfuscator.default((plainBytes: Array[Byte]) => ByteBuffer.allocateDirect(plainBytes.length).put(plainBytes)),
-      deObfuscator = DeObfuscator.default((plainBuffer: PlainValueBuffer) => {
-        val result = new Array[Byte](plainBuffer.capacity())
-        plainBuffer.rewind().get(result)
-        result
-      })
-    )
-
-  given ObfuscatorTuple[String] =
-    ObfuscatorTuple.defaultStringObfuscatorTuple(Charset.defaultCharset())
-
-  given ObfuscatorTuple[Byte] =
-    ObfuscatorTuple.withDefaultDirectByteBuffer(1)(_.put, _.get)
-
-  given ObfuscatorTuple[Char] =
-    ObfuscatorTuple.withDefaultDirectByteBuffer(2)(_.putChar, _.getChar)
-
-  given ObfuscatorTuple[Short] =
-    ObfuscatorTuple.withDefaultDirectByteBuffer(2)(_.putShort, _.getShort)
-
-  given ObfuscatorTuple[Int] =
-    ObfuscatorTuple.withDefaultDirectByteBuffer(4)(_.putInt, _.getInt)
-
-  given ObfuscatorTuple[Long] =
-    ObfuscatorTuple.withDefaultDirectByteBuffer(8)(_.putLong, _.getLong)
-
-  given ObfuscatorTuple[Float] =
-    ObfuscatorTuple.withDefaultDirectByteBuffer(4)(_.putFloat, _.getFloat)
-
-  given ObfuscatorTuple[Double] =
-    ObfuscatorTuple.withDefaultDirectByteBuffer(8)(_.putDouble, _.getDouble)
-
-  given ObfuscatorTuple[Boolean] =
-    ObfuscatorTuple.withDefaultDirectByteBuffer(1)(
-      (b: PlainValueBuffer) => (v: Boolean) => b.put(if (v) 1.toByte else 0.toByte),
-      _.get == 1.toByte
-    )
-
-  given ObfuscatorTuple[BigInt] =
-    summon[ObfuscatorTuple[Array[Byte]]].bimap(_.toByteArray, BigInt(_))
-
-  given ObfuscatorTuple[BigDecimal] =
-    summon[ObfuscatorTuple[String]].bimap(_.toString, str => BigDecimal(str))
-
-  given [P: ObfuscatorTuple]: Obfuscator[P] =
-    summon[ObfuscatorTuple[P]].obfuscator
-
-  given [P: ObfuscatorTuple]: DeObfuscator[P] =
-    summon[ObfuscatorTuple[P]].deObfuscator
+private[secret] sealed trait SecretInstances:
 
   given [T]: Hashing[Secret[T]] =
     Hashing.fromFunction(_.hashCode())

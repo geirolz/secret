@@ -59,7 +59,7 @@ class SecretSuite extends munit.ScalaCheckSuite {
     ).useAndDestroyE(_ => ())
   }
 
-  private def testObfuscatorTupleFor[T: Arbitrary: ObfuscatorTuple](implicit c: ClassTag[T]): Unit = {
+  private def testObfuscatorTupleFor[T: Arbitrary: ObfuscationStrategy](implicit c: ClassTag[T]): Unit = {
 
     val typeName = c.runtimeClass.getSimpleName.capitalize
 

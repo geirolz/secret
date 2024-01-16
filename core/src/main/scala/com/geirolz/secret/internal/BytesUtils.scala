@@ -1,4 +1,4 @@
-package com.geirolz.secret.utils
+package com.geirolz.secret.internal
 
 import java.nio.ByteBuffer
 import java.util
