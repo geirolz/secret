@@ -1,7 +1,7 @@
 package com.geirolz.secret.pureconfig
 
 import _root_.pureconfig.ConfigReader
-import com.geirolz.secret.Secret
+import com.geirolz.secret.{ObfuscationStrategy, Secret}
 
-given [T: ConfigReader: Secret.Obfuscator]: ConfigReader[Secret[T]] =
+given [T: ConfigReader: ObfuscationStrategy]: ConfigReader[Secret[T]] =
   implicitly[ConfigReader[T]].map(t => Secret[T](t))
