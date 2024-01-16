@@ -68,7 +68,7 @@ strengths of both Secret and the respective libraries.
 libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.1"
 ```
 
-#### Pureconfig
+#### Typesafe Config
 ```sbt
 libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.1"
 ```
