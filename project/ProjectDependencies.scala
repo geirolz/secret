@@ -11,7 +11,7 @@ object ProjectDependencies {
   private val scalacheck         = "1.17.0"
 
   lazy val common: Seq[ModuleID] = Seq(
-    "org.typelevel" %% "cats-core" % catsVersion,
+    "org.typelevel" %% "cats-core" % catsVersion % Provided,
 
     // test
     "org.scalameta"  %% "munit"            % munitVersion % Test,
