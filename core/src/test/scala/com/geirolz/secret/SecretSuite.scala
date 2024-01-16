@@ -1,6 +1,5 @@
 package com.geirolz.secret
 
-import com.geirolz.secret.Secret.{ObfuscatorTuple, SecretNoLongerValid}
 import org.scalacheck.Arbitrary
 import org.scalacheck.Prop.forAll
 

@@ -3,7 +3,7 @@ package com.geirolz.secret.internal
 import java.nio.ByteBuffer
 import java.util
 
-private[secret] object BytesUtils:
+private[geirolz] object BytesUtils:
 
   def clearByteArray(bytes: Array[Byte]): Null =
     util.Arrays.fill(bytes, 0.toByte)

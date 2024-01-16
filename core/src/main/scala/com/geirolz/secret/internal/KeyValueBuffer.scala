@@ -5,9 +5,10 @@ import com.geirolz.secret.{KeyBuffer, ObfuscatedValueBuffer}
 
 import scala.util.hashing.MurmurHash3
 
-private[secret] class KeyValueBuffer(_keyBuffer: KeyBuffer, _obfuscatedBuffer: ObfuscatedValueBuffer):
+private[geirolz] class KeyValueBuffer(_keyBuffer: KeyBuffer, _obfuscatedBuffer: ObfuscatedValueBuffer):
   val roKeyBuffer: KeyBuffer                    = _keyBuffer.asReadOnlyBuffer()
   val roObfuscatedBuffer: ObfuscatedValueBuffer = _obfuscatedBuffer.asReadOnlyBuffer()
+
   lazy val obfuscatedHashCode: Int =
     val capacity           = roObfuscatedBuffer.capacity()
     var bytes: Array[Byte] = new scala.Array[Byte](capacity)

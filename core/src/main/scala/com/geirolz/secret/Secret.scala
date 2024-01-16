@@ -15,11 +15,11 @@ import scala.util.hashing.Hashing
   *
   * <b>Obfuscation</b>
   *
-  * The value is obfuscated when creating the `Secret` instance using an given `Obfuscator` which, by default, transform the value into a xor-ed
-  * `ByteBuffer` witch store bytes outside the JVM using direct memory access.
+  * The value is obfuscated when creating the `Secret` instance using the given `ObfuscationStrategy` which, by default, transform the value into a
+  * xor-ed `ByteBuffer` witch store bytes outside the JVM using direct memory access.
   *
-  * The obfuscated value is de-obfuscated using an given `DeObfuscator` instance every time the method `use` is invoked which returns the original
-  * value converting bytes back to `T` re-apply the xor.
+  * The obfuscated value is de-obfuscated using the given `ObfuscationStrategy` instance every time the method `use` is invoked which returns the
+  * original value converting bytes back to `T` re-apply the xor.
   *
   * <b>API and Type safety</b>
   *
@@ -43,7 +43,7 @@ trait Secret[T] extends AutoCloseable:
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
     * other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  def evalUse[F[_]: MonadSecretError, U](f: T => F[U])(using DeObfuscator[T]): F[U]
+  def evalUse[F[_]: MonadSecretError, U](f: T => F[U]): F[U]
 
   /** Destroy the secret value by filling the obfuscated value with '\0'.
     *
@@ -73,14 +73,13 @@ trait Secret[T] extends AutoCloseable:
   def hashCode(): Int
 
   // ------------------------------------------------------------------
-
   /** Avoid this method if possible. Unsafely apply `f` with the de-obfuscated value WITHOUT destroying it.
     *
     * If the secret is destroyed it will raise a `NoLongerValidSecret` exception.
     *
     * Throws `SecretNoLongerValid` if the secret is destroyed
     */
-  final def unsafeUse[U](f: T => U)(using DeObfuscator[T]): U =
+  final def unsafeUse[U](f: T => U): U =
     use[Either[SecretNoLongerValid, *], U](f).fold(throw _, identity)
 
   /** Apply `f` with the de-obfuscated value WITHOUT destroying it.
@@ -90,11 +89,11 @@ trait Secret[T] extends AutoCloseable:
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
     * other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  final def use[F[_]: MonadSecretError, U](f: T => U)(using DeObfuscator[T]): F[U] =
+  final def use[F[_]: MonadSecretError, U](f: T => U): F[U] =
     evalUse[F, U](f.andThen(_.pure[F]))
 
   /** Alias for `use` with `Either[Throwable, *]` */
-  final def useE[U](f: T => U)(using DeObfuscator[T]): Either[SecretNoLongerValid, U] =
+  final def useE[U](f: T => U): Either[SecretNoLongerValid, U] =
     use[Either[SecretNoLongerValid, *], U](f)
 
   /** Apply `f` with the de-obfuscated value and then destroy the secret value by invoking `destroy` method.
@@ -102,11 +101,11 @@ trait Secret[T] extends AutoCloseable:
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
     * other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  final def useAndDestroy[F[_]: MonadSecretError, U](f: T => U)(using DeObfuscator[T]): F[U] =
+  final def useAndDestroy[F[_]: MonadSecretError, U](f: T => U): F[U] =
     evalUseAndDestroy[F, U](f.andThen(_.pure[F]))
 
   /** Alias for `useAndDestroy` with `Either[Throwable, *]` */
-  final def useAndDestroyE[U](f: T => U)(using DeObfuscator[T]): Either[SecretNoLongerValid, U] =
+  final def useAndDestroyE[U](f: T => U): Either[SecretNoLongerValid, U] =
     useAndDestroy[Either[SecretNoLongerValid, *], U](f)
 
   /** Apply `f` with the de-obfuscated value and then destroy the secret value by invoking `destroy` method.
@@ -114,7 +113,7 @@ trait Secret[T] extends AutoCloseable:
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
     * other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  final def evalUseAndDestroy[F[_]: MonadSecretError, U](f: T => F[U])(using DeObfuscator[T]): F[U] =
+  final def evalUseAndDestroy[F[_]: MonadSecretError, U](f: T => F[U]): F[U] =
     evalUse(f).map { u =>
       destroy(); u
     }
@@ -127,7 +126,7 @@ trait Secret[T] extends AutoCloseable:
     * @return
     *   `true` if the secrets are equal, `false` if they are not equal or if one of the secret is destroyed
     */
-  final def isEquals(that: Secret[T])(using DeObfuscator[T]): Boolean =
+  final def isEquals(that: Secret[T]): Boolean =
     evalUse[Try, Boolean](value => that.use[Try, Boolean](_ == value)).getOrElse(false)
 
   /** Always returns `false`, use `isEqual` instead */
@@ -138,16 +137,17 @@ trait Secret[T] extends AutoCloseable:
     */
   final override def toString: String = "** SECRET **"
 
-object Secret extends SecretInstances with ObfuscatorInstances:
-  def apply[T: Obfuscator](value: T): Secret[T] =
-    var bufferTuple: KeyValueBuffer = Obfuscator[T].apply(value)
+object Secret extends SecretInstances with DefaultObfuscationStrategyInstances:
+  def apply[T: ObfuscationStrategy](value: T): Secret[T] =
     new Secret[T] {
 
-      override def evalUse[F[_]: MonadSecretError, U](f: T => F[U])(using deObfuscator: DeObfuscator[T]): F[U] =
+      private var bufferTuple: KeyValueBuffer = ObfuscationStrategy[T].obfuscator(value)
+
+      override def evalUse[F[_]: MonadSecretError, U](f: T => F[U]): F[U] =
         if (isDestroyed)
           summon[MonadSecretError[F]].raiseError(SecretNoLongerValid())
         else
-          f(deObfuscator(bufferTuple))
+          f(ObfuscationStrategy[T].deObfuscator(bufferTuple))
 
       override def destroy(): Unit =
         bufferTuple.destroy()
@@ -156,6 +156,7 @@ object Secret extends SecretInstances with ObfuscatorInstances:
       override def isDestroyed: Boolean =
         bufferTuple == null
 
+      // noinspection HashCodeUsesVar
       override def hashCode(): Int =
         if (isDestroyed) -1 else bufferTuple.obfuscatedHashCode
     }
