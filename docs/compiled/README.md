@@ -19,10 +19,10 @@ Please, drop a ⭐️ if you are interested in this project and you want to supp
 
 ## Obfuscation
 
-The value is obfuscated when creating the `Secret` instance using an implicit `Obfuscator`which, by default, transform the value into a xor-ed
+The value is obfuscated when creating the `Secret` instance using the implicit `ObfuscationStrategy` which, by default, transform the value into a xor-ed
 `ByteBuffer` witch store bytes outside the JVM using direct memory access.
 
-The obfuscated value is de-obfuscated using an implicit `DeObfuscator` instance every time the method `use` is invoked which returns the original
+The obfuscated value is de-obfuscated using the implicit `ObfuscationStrategy` instance every time the method `use` is invoked which returns the original
 value converting bytes back to `T` re-apply the xor.
 
 
@@ -46,9 +46,17 @@ To get started with Secret, follow these steps:
 1. **Installation:** Include the library as a dependency in your Scala project. You can find the latest version and
    installation instructions in the [Secret GitHub repository](https://github.com/geirolz/secret).
 
+
+Scala2.13
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret" % "<version>"
+libraryDependencies += "com.github.geirolz" %% "secret_3" % "0.0.1"
 ```
+
+Scala3
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.1"
+```
+
 ### Integrations
 
 These integrations aim to enhance the functionality and capabilities of your applications by leveraging the features and
@@ -56,7 +64,7 @@ strengths of both Secret and the respective libraries.
 
 #### Pureconfig
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "<version>"
+libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.1"
 ```
 ## Adopters
 

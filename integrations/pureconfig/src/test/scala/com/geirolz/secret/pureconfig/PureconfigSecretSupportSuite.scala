@@ -5,7 +5,7 @@ import _root_.pureconfig.backend.ConfigFactoryWrapper
 import com.geirolz.secret.Secret
 import com.typesafe.config.Config
 
-class PureconfigSecretSupportSuite extends munit.FunSuite {
+class PureconfigSecretSupportSuite extends munit.FunSuite:
 
   test("Read secret string with pureconfig") {
 
@@ -35,4 +35,3 @@ class PureconfigSecretSupportSuite extends munit.FunSuite {
     )
 
   }
-}
