@@ -67,6 +67,12 @@ strengths of both Secret and the respective libraries.
 ```sbt
 libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "@VERSION@"
 ```
+
+#### Pureconfig
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "@VERSION@"
+```
+
 ## Adopters
 
 If you are using Secret in your company, please let me know and I'll add it to the list! It means a lot to me.
