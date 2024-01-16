@@ -49,7 +49,8 @@ To get started with Secret, follow these steps:
 
 Scala2.13
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret_3" % "@VERSION@"
+libraryDependencies += "com.github.geirolz" %% "secret" % "@VERSION@" cross CrossVersion.for2_13Use3
+scalacOptions += "-Ytasty-reader"
 ```
 
 Scala3
