@@ -6,7 +6,6 @@ import org.scalacheck.Prop.forAll
 import scala.reflect.ClassTag
 import scala.util.{Failure, Try}
 import cats.Eq
-import cats.implicits.catsSyntaxEq
 
 import scala.collection.immutable.ArraySeq
 
