@@ -3,16 +3,20 @@ import scala.language.postfixOps
 
 object ProjectDependencies {
 
-  private val catsVersion           = "2.10.0"
+  // base
+  private val catsVersion = "2.10.0"
+  // test
+  private val munitVersion       = "0.7.29"
+  private val munitEffectVersion = "1.0.7"
+  private val scalacheck         = "1.17.0"
+  // integrations
   private val catsEffectVersion     = "3.5.3"
-  private val munitVersion          = "0.7.29"
-  private val munitEffectVersion    = "1.0.7"
-  private val scalacheck            = "1.17.0"
   private val pureConfigVersion     = "0.17.4"
   private val typesafeConfigVersion = "1.4.3"
   private val cirisVersion          = "3.5.0"
 
   lazy val common: Seq[ModuleID] = Seq(
+    // base
     "org.typelevel" %% "cats-core" % catsVersion % Provided,
 
     // test
@@ -42,7 +46,7 @@ object ProjectDependencies {
     object Ciris {
       lazy val dedicated: Seq[ModuleID] = List(
         "is.cir"        %% "ciris"               % cirisVersion,
-        "org.typelevel" %% "cats-effect"         % catsEffectVersion,
+        "org.typelevel" %% "cats-effect"         % catsEffectVersion  % Test,
         "org.typelevel" %% "munit-cats-effect-3" % munitEffectVersion % Test
       )
     }
