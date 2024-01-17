@@ -1,18 +1,15 @@
 package com.geirolz.secret
 
-import cats.{Foldable, Traverse}
-import cats.data.{Chain, NonEmptyChain, NonEmptyList, NonEmptySet, NonEmptyVector}
 import com.geirolz.secret.Secret.secretStrategyForBytes
-import com.geirolz.secret.{KeyBuffer, ObfuscatedValueBuffer, PlainValueBuffer}
-import com.geirolz.secret.internal.BytesUtils.{clearByteArray, clearByteBuffer}
 import com.geirolz.secret.SecretStrategy.{DeObfuscator, Obfuscator}
+import com.geirolz.secret.internal.BytesUtils.{clearByteArray, clearByteBuffer}
 import com.geirolz.secret.internal.KeyValueBuffer
+import com.geirolz.secret.{KeyBuffer, ObfuscatedValueBuffer, PlainValueBuffer}
 
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.security.SecureRandom
-import scala.collection.BuildFrom
-import scala.collection.immutable.{ArraySeq, SortedSet, Vector}
+import scala.collection.immutable.ArraySeq
 import scala.reflect.ClassTag
 
 opaque type SecretStrategy[P] = (Obfuscator[P], DeObfuscator[P])
