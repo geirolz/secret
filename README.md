@@ -34,14 +34,14 @@ information in other ways. Preventing developers to improperly use the secret va
 Example
 ```scala
 import com.geirolz.secret.Secret
-  import scala.util.Try
+import scala.util.Try
 
-  case class Database(password: String)
-  def initDb(password: String): Database = Database(password)
+case class Database(password: String)
+def initDb(password: String): Database = Database(password)
 
-  val secretString: Secret[String]  = Secret("my_password")
+val secretString: Secret[String]  = Secret("my_password")
 // secretString: Secret[String] = ** SECRET **
-  val database: Try[Database]       = secretString.useAndDestroy[Try, Database](password => initDb(password))
+val database: Try[Database]       = secretString.useAndDestroy[Try, Database](password => initDb(password))
 // database: Try[Database] = Success(
 //   value = Database(password = "my_password")
 // )
