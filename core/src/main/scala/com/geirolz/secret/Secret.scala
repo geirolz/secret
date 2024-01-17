@@ -2,7 +2,6 @@ package com.geirolz.secret
 
 import cats.{Eq, Show}
 import com.geirolz.secret.Secret.*
-import com.geirolz.secret.internal.KeyValueBuffer
 
 import scala.util.Try
 import scala.util.hashing.Hashing

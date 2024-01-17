@@ -96,6 +96,24 @@ import com.geirolz.secret.ciris.given
 
 If you are using Secret in your company, please let me know and I'll add it to the list! It means a lot to me.
 
+## Custom Obfuscation Strategy
+
+If you want to use a custom obfuscation strategy you can implement a custom `SecretStrategy` and provide an implicit instance of it during the secret creation.
+If you think that your strategy can be useful for other people, please consider to contribute to the project and add it to the library.
+
+```scala
+import com.geirolz.secret.SecretStrategy.{DeObfuscator, Obfuscator}
+import com.geirolz.secret.{KeyValueBuffer, Secret, SecretStrategy}
+
+given SecretStrategy[String] = SecretStrategy[String](
+  Obfuscator[String](_ => KeyValueBuffer.directEmpty(0)),
+  DeObfuscator[String](_ => "CUSTOM"),
+)
+
+Secret("my_password").useE(secret => secret)
+// res5: Either[SecretNoLongerValid, String] = Right(value = "CUSTOM")
+```
+
 ## Contributing
 
 We welcome contributions from the open-source community to make Secret even better. If you have any bug reports,

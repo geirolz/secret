@@ -1,11 +1,12 @@
-package com.geirolz.secret.internal
+package com.geirolz.secret
 
 import com.geirolz.secret.internal.BytesUtils.{clearByteArray, clearByteBuffer}
 import com.geirolz.secret.{KeyBuffer, ObfuscatedValueBuffer}
 
+import java.nio.ByteBuffer
 import scala.util.hashing.MurmurHash3
 
-private[geirolz] class KeyValueBuffer(_keyBuffer: KeyBuffer, _obfuscatedBuffer: ObfuscatedValueBuffer):
+class KeyValueBuffer(_keyBuffer: KeyBuffer, _obfuscatedBuffer: ObfuscatedValueBuffer) extends AutoCloseable:
   val roKeyBuffer: KeyBuffer                    = _keyBuffer.asReadOnlyBuffer()
   val roObfuscatedBuffer: ObfuscatedValueBuffer = _obfuscatedBuffer.asReadOnlyBuffer()
 
@@ -23,3 +24,11 @@ private[geirolz] class KeyValueBuffer(_keyBuffer: KeyBuffer, _obfuscatedBuffer: 
     clearByteBuffer(_keyBuffer)
     clearByteBuffer(_obfuscatedBuffer)
     ()
+
+  def close(): Unit = destroy()
+
+object KeyValueBuffer:
+  def directEmpty(capacity: Int) = new KeyValueBuffer(
+    _keyBuffer        = ByteBuffer.allocateDirect(capacity),
+    _obfuscatedBuffer = ByteBuffer.allocateDirect(capacity)
+  )

@@ -3,7 +3,6 @@ package com.geirolz.secret
 import com.geirolz.secret.Secret.secretStrategyForBytes
 import com.geirolz.secret.SecretStrategy.{DeObfuscator, Obfuscator}
 import com.geirolz.secret.internal.BytesUtils.{clearByteArray, clearByteBuffer}
-import com.geirolz.secret.internal.KeyValueBuffer
 import com.geirolz.secret.{KeyBuffer, ObfuscatedValueBuffer, PlainValueBuffer}
 
 import java.nio.ByteBuffer
@@ -19,14 +18,14 @@ object SecretStrategy extends SecretStrategyBuilders with DefaultSecretStrategyI
     def obfuscator: Obfuscator[P]     = strategy._1
     def deObfuscator: DeObfuscator[P] = strategy._2
     def bimap[U](fO: U => P, fD: P => U): SecretStrategy[U] =
-      SecretStrategy.of(
+      SecretStrategy(
         obfuscator   = Obfuscator(plain => obfuscator(fO(plain))),
         deObfuscator = DeObfuscator(bufferTuple => fD(deObfuscator(bufferTuple)))
       )
 
   def apply[P: SecretStrategy]: SecretStrategy[P] = summon[SecretStrategy[P]]
 
-  def of[P](obfuscator: Obfuscator[P], deObfuscator: DeObfuscator[P]): SecretStrategy[P] =
+  def apply[P](obfuscator: Obfuscator[P], deObfuscator: DeObfuscator[P]): SecretStrategy[P] =
     (obfuscator, deObfuscator)
 
   // ------------------ Obfuscator ------------------
@@ -138,7 +137,7 @@ private[secret] sealed trait SecretStrategyBuilders:
     fillBuffer: ByteBuffer => P => PlainValueBuffer,
     readBuffer: PlainValueBuffer => P
   ): SecretStrategy[P] =
-    SecretStrategy.of(
+    SecretStrategy(
       obfuscator   = buildObfuscator((plainValue: P) => fillBuffer(ByteBuffer.allocateDirect(capacity)).apply(plainValue)),
       deObfuscator = buildDeObfuscator((buffer: PlainValueBuffer) => readBuffer(buffer.rewind().asReadOnlyBuffer()))
     )
@@ -187,7 +186,7 @@ private[secret] trait DefaultSecretStrategyInstances:
 
   // collections
   given secretStrategyForBytes: SecretStrategy[Array[Byte]] =
-    SecretStrategy.of[Array[Byte]](
+    SecretStrategy[Array[Byte]](
       obfuscator = Obfuscator.default((plainBytes: Array[Byte]) => ByteBuffer.allocateDirect(plainBytes.length).put(plainBytes)),
       deObfuscator = DeObfuscator.default((plainBuffer: PlainValueBuffer) => {
         val result = new Array[Byte](plainBuffer.capacity())
