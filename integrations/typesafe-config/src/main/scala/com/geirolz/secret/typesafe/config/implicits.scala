@@ -1,6 +1,6 @@
 package com.geirolz.secret.typesafe.config
 
-import com.geirolz.secret.{SecretStrategy, Secret}
+import com.geirolz.secret.{Secret, SecretStrategy}
 import com.typesafe.config.Config
 
 extension (config: Config)
