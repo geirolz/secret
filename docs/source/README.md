@@ -37,7 +37,7 @@ Example
   
   val secretString: Secret[String]  = Secret("my_password")
   val database: F[Database]         = secretString.use(password => initDb(password))
-```
+```   
 
 ## Getting Started
 
@@ -71,6 +71,11 @@ libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "@VERSION@"
 #### Typesafe Config
 ```sbt
 libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "@VERSION@"
+```
+
+#### Ciris
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "@VERSION@"
 ```
 
 ## Adopters

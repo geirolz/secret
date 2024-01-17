@@ -34,13 +34,13 @@ lazy val root: Project = project
   .settings(
     copyReadMe := IO.copyFile(file("docs/compiled/README.md"), file("README.md"))
   )
-  .aggregate(core, docs, pureconfig, typesafeConfig)
+  .aggregate(core, docs, pureconfig, typesafeConfig, ciris)
 
 lazy val docs: Project =
   project
     .in(file("docs"))
     .enablePlugins(MdocPlugin)
-    .dependsOn(core, pureconfig, typesafeConfig)
+    .dependsOn(core, pureconfig, typesafeConfig, ciris)
     .settings(
       baseSettings,
       noPublishSettings,
@@ -83,6 +83,15 @@ lazy val typesafeConfig: Project =
   ).dependsOn(core)
     .settings(
       libraryDependencies ++= ProjectDependencies.Integrations.TypesafeConfig.dedicated
+    )
+
+lazy val ciris: Project =
+  module("ciris")(
+    folder    = s"$integrationsFolder/ciris",
+    publishAs = Some(subProjectName("ciris"))
+  ).dependsOn(core)
+    .settings(
+      libraryDependencies ++= ProjectDependencies.Integrations.Ciris.dedicated
     )
 
 //=============================== MODULES UTILS ===============================

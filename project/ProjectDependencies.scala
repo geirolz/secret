@@ -9,6 +9,7 @@ object ProjectDependencies {
   private val scalacheck            = "1.17.0"
   private val pureConfigVersion     = "0.17.4"
   private val typesafeConfigVersion = "1.4.3"
+  private val cirisVersion          = "3.5.0"
 
   lazy val common: Seq[ModuleID] = Seq(
     "org.typelevel" %% "cats-core" % catsVersion % Provided,
@@ -34,6 +35,12 @@ object ProjectDependencies {
     object TypesafeConfig {
       lazy val dedicated: Seq[ModuleID] = List(
         "com.typesafe" % "config" % typesafeConfigVersion
+      )
+    }
+
+    object Ciris {
+      lazy val dedicated: Seq[ModuleID] = List(
+        "is.cir" %% "ciris" % cirisVersion
       )
     }
   }
