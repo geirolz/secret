@@ -8,27 +8,25 @@
 [![Mergify Status](https://img.shields.io/endpoint.svg?url=https://api.mergify.com/v1/badges/geirolz/secret&style=flat)](https://mergify.io)
 [![GitHub license](https://img.shields.io/github/license/geirolz/secret)](https://github.com/geirolz/secret/blob/main/LICENSE)
 
-A functional, type-safe and memory-safe class to handle secret values 
+A functional, type-safe and memory-safe library to handle secret values 
 
-`Secret` does the best to avoid leaking information in memory and in the code BUT an attack is possible and I don't give any certainties or
-guarantees about security using this class, you use it at your own risk. Code is open source, you can check the implementation and take your
-decision consciously. I'll do my best to improve the security and documentation of this class.
+`Secret` library does the best to avoid leaking information in memory and in the code BUT an attack is always possible and I don't give any certainties or
+guarantees about security using this library, you use it at your own risk. The code is open sourced, you can check the implementation and take your
+decision consciously. I'll do my best to improve the security and the documentation of this project.
 
 Please, drop a ⭐️ if you are interested in this project and you want to support it.
 
-
 ## Obfuscation
 
-The value is obfuscated when creating the `Secret` instance using the implicit `ObfuscationStrategy` which, by default, transform the value into a xor-ed
+By default the value is obfuscated when creating the `Secret` instance using the implicit `SecretStrategy` which, by default, transform the value into a xor-ed
 `ByteBuffer` witch store bytes outside the JVM using direct memory access.
 
-The obfuscated value is de-obfuscated using the implicit `ObfuscationStrategy` instance every time the method `use` is invoked which returns the original
-value converting bytes back to `T` re-apply the xor.
-
+The obfuscated value is de-obfuscated using the implicit `SecretStrategy` instance every time `use`, and derived method, are invoked which returns the original
+value converting the bytes back to `T` re-applying the xor formula.
 
 ## API and Type safety
 
-While obfuscating the value prevents or at least makes it harder to read the value from memory, Secret class API are designed to avoid leaking
+While obfuscating the value prevents or at least makes it harder to read the value from the memory, Secret class API are designed to avoid leaking
 information in other ways. Preventing developers to improperly use the secret value ( logging, etc...).
 
 Example
