@@ -32,11 +32,19 @@ While obfuscating the value prevents or at least makes it harder to read the val
 information in other ways. Preventing developers to improperly use the secret value ( logging, etc...).
 
 Example
-```mdoc scala
-  import com.github.geirolz.secret.Secret
-  
+```scala
+import com.geirolz.secret.Secret
+  import scala.util.Try
+
+  case class Database(password: String)
+  def initDb(password: String): Database = Database(password)
+
   val secretString: Secret[String]  = Secret("my_password")
-  val database: F[Database]         = secretString.use(password => initDb(password))
+// secretString: Secret[String] = ** SECRET **
+  val database: Try[Database]       = secretString.useAndDestroy[Try, Database](password => initDb(password))
+// database: Try[Database] = Success(
+//   value = Database(password = "my_password")
+// )
 ```   
 
 ## Getting Started
@@ -67,15 +75,23 @@ strengths of both Secret and the respective libraries.
 ```sbt
 libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.1"
 ```
-
+```scala
+import com.geirolz.secret.pureconfig.given
+```
 #### Typesafe Config
 ```sbt
 libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.1"
+```
+```scala
+import com.geirolz.secret.typesafe.config.given
 ```
 
 #### Ciris
 ```sbt
 libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.1"
+```
+```scala
+import com.geirolz.secret.ciris.given
 ```
 
 ## Adopters
