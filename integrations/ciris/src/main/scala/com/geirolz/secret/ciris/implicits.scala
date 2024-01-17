@@ -1,7 +1,7 @@
 package com.geirolz.secret.ciris
 
 import ciris.ConfigDecoder
-import com.geirolz.secret.{SecretStrategy, Secret}
+import com.geirolz.secret.{Secret, SecretStrategy}
 
-given [F <: Nothing, T: ConfigDecoder[F, *]: SecretStrategy]: ConfigDecoder[F, Secret[T]] =
-  summon[ConfigDecoder[F, T]].map(Secret.apply)
+given [A, T: ConfigDecoder[A, *]: SecretStrategy]: ConfigDecoder[A, Secret[T]] =
+  summon[ConfigDecoder[A, T]].map(Secret.apply)

@@ -4,6 +4,7 @@ import scala.language.postfixOps
 object ProjectDependencies {
 
   private val catsVersion           = "2.10.0"
+  private val catsEffectVersion     = "3.5.3"
   private val munitVersion          = "0.7.29"
   private val munitEffectVersion    = "1.0.7"
   private val scalacheck            = "1.17.0"
@@ -40,7 +41,9 @@ object ProjectDependencies {
 
     object Ciris {
       lazy val dedicated: Seq[ModuleID] = List(
-        "is.cir" %% "ciris" % cirisVersion
+        "is.cir"        %% "ciris"               % cirisVersion,
+        "org.typelevel" %% "cats-effect"         % catsEffectVersion,
+        "org.typelevel" %% "munit-cats-effect-3" % munitEffectVersion % Test
       )
     }
   }
