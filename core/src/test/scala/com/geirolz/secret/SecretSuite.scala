@@ -5,20 +5,31 @@ import org.scalacheck.Prop.forAll
 
 import scala.reflect.ClassTag
 import scala.util.{Failure, Try}
+import cats.Eq
+import cats.implicits.catsSyntaxEq
+
+import scala.collection.immutable.ArraySeq
 
 class SecretSuite extends munit.ScalaCheckSuite {
 
-  testObfuscatorTupleFor[String]
-  testObfuscatorTupleFor[Int]
-  testObfuscatorTupleFor[Long]
-  testObfuscatorTupleFor[Short]
-  testObfuscatorTupleFor[Char]
-  testObfuscatorTupleFor[Byte]
-  testObfuscatorTupleFor[Float]
-  testObfuscatorTupleFor[Double]
-  testObfuscatorTupleFor[Boolean]
-  testObfuscatorTupleFor[BigInt]
-  testObfuscatorTupleFor[BigDecimal]
+  // numbers
+  testSecretStrategyFor[Short]
+  testSecretStrategyFor[Int]
+  testSecretStrategyFor[Long]
+  testSecretStrategyFor[Float]
+  testSecretStrategyFor[Double]
+  testSecretStrategyFor[BigInt]
+  testSecretStrategyFor[BigDecimal]
+
+  // others
+  testSecretStrategyFor[String]
+  testSecretStrategyFor[Boolean]
+  testSecretStrategyFor[Byte]
+  testSecretStrategyFor[Char]
+
+  // collections
+  testSecretStrategyFor[ArraySeq[Byte]]
+  testSecretStrategyFor[ArraySeq[Char]]
 
   test("Simple Secret String") {
     Secret("TEST").useAndDestroyE(_ => ())
@@ -58,11 +69,11 @@ class SecretSuite extends munit.ScalaCheckSuite {
     ).useAndDestroyE(_ => ())
   }
 
-  private def testObfuscatorTupleFor[T: Arbitrary: ObfuscationStrategy](implicit c: ClassTag[T]): Unit = {
+  private def testSecretStrategyFor[T: Arbitrary: Eq: SecretStrategy](using c: ClassTag[T]): Unit = {
 
     val typeName = c.runtimeClass.getSimpleName.capitalize
 
-    property(s"Secret[$typeName] succesfully obfuscate") {
+    property(s"Secret[$typeName] successfully obfuscate") {
       forAll { (value: T) =>
         Secret(value)
         assert(cond = true)

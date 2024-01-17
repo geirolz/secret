@@ -15,11 +15,11 @@ import scala.util.hashing.Hashing
   *
   * <b>Obfuscation</b>
   *
-  * The value is obfuscated when creating the `Secret` instance using the given `ObfuscationStrategy` which, by default, transform the value into a
-  * xor-ed `ByteBuffer` witch store bytes outside the JVM using direct memory access.
+  * The value is obfuscated when creating the `Secret` instance using the given `SecretStrategy` which, by default, transform the value into a xor-ed
+  * `ByteBuffer` witch store bytes outside the JVM using direct memory access.
   *
-  * The obfuscated value is de-obfuscated using the given `ObfuscationStrategy` instance every time the method `use` is invoked which returns the
-  * original value converting bytes back to `T` re-apply the xor.
+  * The obfuscated value is de-obfuscated using the given `SecretStrategy` instance every time the method `use` is invoked which returns the original
+  * value converting bytes back to `T` re-apply the xor.
   *
   * <b>API and Type safety</b>
   *
@@ -126,8 +126,8 @@ trait Secret[T] extends AutoCloseable:
     * @return
     *   `true` if the secrets are equal, `false` if they are not equal or if one of the secret is destroyed
     */
-  final def isEquals(that: Secret[T]): Boolean =
-    evalUse[Try, Boolean](value => that.use[Try, Boolean](_ == value)).getOrElse(false)
+  final def isEquals(that: Secret[T])(using Eq[T]): Boolean =
+    evalUse[Try, Boolean](thisValue => that.use[Try, Boolean](_ === thisValue)).getOrElse(false)
 
   /** Always returns `false`, use `isEqual` instead */
   final override def equals(obj: Any): Boolean = false
@@ -137,17 +137,17 @@ trait Secret[T] extends AutoCloseable:
     */
   final override def toString: String = "** SECRET **"
 
-object Secret extends SecretInstances with DefaultObfuscationStrategyInstances:
-  def apply[T: ObfuscationStrategy](value: T): Secret[T] =
+object Secret extends SecretInstances with DefaultSecretStrategyInstances:
+  def apply[T](value: T)(using strategy: SecretStrategy[T]): Secret[T] =
     new Secret[T] {
 
-      private var bufferTuple: KeyValueBuffer = ObfuscationStrategy[T].obfuscator(value)
+      private var bufferTuple: KeyValueBuffer = strategy.obfuscator(value)
 
       override def evalUse[F[_]: MonadSecretError, U](f: T => F[U]): F[U] =
         if (isDestroyed)
           summon[MonadSecretError[F]].raiseError(SecretNoLongerValid())
         else
-          f(ObfuscationStrategy[T].deObfuscator(bufferTuple))
+          f(SecretStrategy[T].deObfuscator(bufferTuple))
 
       override def destroy(): Unit =
         bufferTuple.destroy()

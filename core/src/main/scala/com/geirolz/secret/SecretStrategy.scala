@@ -1,28 +1,35 @@
 package com.geirolz.secret
 
+import cats.{Foldable, Traverse}
+import cats.data.{Chain, NonEmptyChain, NonEmptyList, NonEmptySet, NonEmptyVector}
+import com.geirolz.secret.Secret.secretStrategyForBytes
 import com.geirolz.secret.{KeyBuffer, ObfuscatedValueBuffer, PlainValueBuffer}
 import com.geirolz.secret.internal.BytesUtils.{clearByteArray, clearByteBuffer}
-import com.geirolz.secret.ObfuscationStrategy.{DeObfuscator, Obfuscator}
+import com.geirolz.secret.SecretStrategy.{DeObfuscator, Obfuscator}
 import com.geirolz.secret.internal.KeyValueBuffer
+
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.security.SecureRandom
+import scala.collection.BuildFrom
+import scala.collection.immutable.{ArraySeq, SortedSet, Vector}
+import scala.reflect.ClassTag
 
-opaque type ObfuscationStrategy[P] = (Obfuscator[P], DeObfuscator[P])
-object ObfuscationStrategy extends ObfuscationStrategyBuilders with DefaultObfuscationStrategyInstances:
+opaque type SecretStrategy[P] = (Obfuscator[P], DeObfuscator[P])
+object SecretStrategy extends SecretStrategyBuilders with DefaultSecretStrategyInstances:
 
-  extension [P](obfuscationStrategy: ObfuscationStrategy[P])
-    def obfuscator: Obfuscator[P]     = obfuscationStrategy._1
-    def deObfuscator: DeObfuscator[P] = obfuscationStrategy._2
-    def bimap[U](fO: U => P, fD: P => U): ObfuscationStrategy[U] =
-      ObfuscationStrategy.of(
+  extension [P](strategy: SecretStrategy[P])
+    def obfuscator: Obfuscator[P]     = strategy._1
+    def deObfuscator: DeObfuscator[P] = strategy._2
+    def bimap[U](fO: U => P, fD: P => U): SecretStrategy[U] =
+      SecretStrategy.of(
         obfuscator   = Obfuscator(plain => obfuscator(fO(plain))),
         deObfuscator = DeObfuscator(bufferTuple => fD(deObfuscator(bufferTuple)))
       )
 
-  def apply[P: ObfuscationStrategy]: ObfuscationStrategy[P] = summon[ObfuscationStrategy[P]]
+  def apply[P: SecretStrategy]: SecretStrategy[P] = summon[SecretStrategy[P]]
 
-  def of[P](obfuscator: Obfuscator[P], deObfuscator: DeObfuscator[P]): ObfuscationStrategy[P] =
+  def of[P](obfuscator: Obfuscator[P], deObfuscator: DeObfuscator[P]): SecretStrategy[P] =
     (obfuscator, deObfuscator)
 
   // ------------------ Obfuscator ------------------
@@ -115,12 +122,12 @@ object ObfuscationStrategy extends ObfuscationStrategyBuilders with DefaultObfus
 
         result
 
-private[secret] sealed trait ObfuscationStrategyBuilders:
+private[secret] sealed trait SecretStrategyBuilders:
 
   def withDefaultDirectByteBuffer[P](capacity: Int)(
     fillBuffer: ByteBuffer => P => PlainValueBuffer,
     readBuffer: PlainValueBuffer => P
-  ): ObfuscationStrategy[P] =
+  ): SecretStrategy[P] =
     withDirectByteBuffer(capacity)(
       buildObfuscator   = Obfuscator.default,
       buildDeObfuscator = DeObfuscator.default,
@@ -133,19 +140,57 @@ private[secret] sealed trait ObfuscationStrategyBuilders:
     buildDeObfuscator: (PlainValueBuffer => P) => DeObfuscator[P],
     fillBuffer: ByteBuffer => P => PlainValueBuffer,
     readBuffer: PlainValueBuffer => P
-  ): ObfuscationStrategy[P] =
-    ObfuscationStrategy.of(
+  ): SecretStrategy[P] =
+    SecretStrategy.of(
       obfuscator   = buildObfuscator((plainValue: P) => fillBuffer(ByteBuffer.allocateDirect(capacity)).apply(plainValue)),
       deObfuscator = buildDeObfuscator((buffer: PlainValueBuffer) => readBuffer(buffer.rewind().asReadOnlyBuffer()))
     )
 
-  def defaultForString(charset: Charset): ObfuscationStrategy[String] =
-    summon[ObfuscationStrategy[Array[Byte]]].bimap(_.getBytes(charset), new String(_, charset))
+  def defaultForString(charset: Charset): SecretStrategy[String] =
+    secretStrategyForBytes.bimap(_.getBytes(charset), new String(_, charset))
 
-private[secret] trait DefaultObfuscationStrategyInstances:
+private[secret] trait DefaultSecretStrategyInstances:
 
-  given ObfuscationStrategy[Array[Byte]] =
-    ObfuscationStrategy.of[Array[Byte]](
+  given SecretStrategy[Short] =
+    SecretStrategy.withDefaultDirectByteBuffer(2)(_.putShort, _.getShort)
+
+  given SecretStrategy[Int] =
+    SecretStrategy.withDefaultDirectByteBuffer(4)(_.putInt, _.getInt)
+
+  given SecretStrategy[Long] =
+    SecretStrategy.withDefaultDirectByteBuffer(8)(_.putLong, _.getLong)
+
+  given SecretStrategy[Float] =
+    SecretStrategy.withDefaultDirectByteBuffer(4)(_.putFloat, _.getFloat)
+
+  given SecretStrategy[Double] =
+    SecretStrategy.withDefaultDirectByteBuffer(8)(_.putDouble, _.getDouble)
+
+  given SecretStrategy[BigInt] =
+    secretStrategyForBytes.bimap(_.toByteArray, BigInt(_))
+
+  given SecretStrategy[BigDecimal] =
+    summon[SecretStrategy[String]].bimap(_.toString, str => BigDecimal(str))
+
+  // other
+  given SecretStrategy[String] =
+    SecretStrategy.defaultForString(Charset.defaultCharset())
+
+  given SecretStrategy[Boolean] =
+    SecretStrategy.withDefaultDirectByteBuffer(1)(
+      fillBuffer = (b: PlainValueBuffer) => (v: Boolean) => b.put(if (v) 1.toByte else 0.toByte),
+      readBuffer = _.get == 1.toByte
+    )
+
+  given SecretStrategy[Byte] =
+    SecretStrategy.withDefaultDirectByteBuffer(1)(_.put, _.get)
+
+  given SecretStrategy[Char] =
+    SecretStrategy.withDefaultDirectByteBuffer(2)(_.putChar, _.getChar)
+
+  // collections
+  given secretStrategyForBytes: SecretStrategy[Array[Byte]] =
+    SecretStrategy.of[Array[Byte]](
       obfuscator = Obfuscator.default((plainBytes: Array[Byte]) => ByteBuffer.allocateDirect(plainBytes.length).put(plainBytes)),
       deObfuscator = DeObfuscator.default((plainBuffer: PlainValueBuffer) => {
         val result = new Array[Byte](plainBuffer.capacity())
@@ -154,38 +199,8 @@ private[secret] trait DefaultObfuscationStrategyInstances:
       })
     )
 
-  given ObfuscationStrategy[String] =
-    ObfuscationStrategy.defaultForString(Charset.defaultCharset())
+  given secretStrategyForChars: SecretStrategy[Array[Char]] =
+    summon[SecretStrategy[String]].bimap(new String(_), _.toCharArray)
 
-  given ObfuscationStrategy[Byte] =
-    ObfuscationStrategy.withDefaultDirectByteBuffer(1)(_.put, _.get)
-
-  given ObfuscationStrategy[Char] =
-    ObfuscationStrategy.withDefaultDirectByteBuffer(2)(_.putChar, _.getChar)
-
-  given ObfuscationStrategy[Short] =
-    ObfuscationStrategy.withDefaultDirectByteBuffer(2)(_.putShort, _.getShort)
-
-  given ObfuscationStrategy[Int] =
-    ObfuscationStrategy.withDefaultDirectByteBuffer(4)(_.putInt, _.getInt)
-
-  given ObfuscationStrategy[Long] =
-    ObfuscationStrategy.withDefaultDirectByteBuffer(8)(_.putLong, _.getLong)
-
-  given ObfuscationStrategy[Float] =
-    ObfuscationStrategy.withDefaultDirectByteBuffer(4)(_.putFloat, _.getFloat)
-
-  given ObfuscationStrategy[Double] =
-    ObfuscationStrategy.withDefaultDirectByteBuffer(8)(_.putDouble, _.getDouble)
-
-  given ObfuscationStrategy[Boolean] =
-    ObfuscationStrategy.withDefaultDirectByteBuffer(1)(
-      (b: PlainValueBuffer) => (v: Boolean) => b.put(if (v) 1.toByte else 0.toByte),
-      _.get == 1.toByte
-    )
-
-  given ObfuscationStrategy[BigInt] =
-    summon[ObfuscationStrategy[Array[Byte]]].bimap(_.toByteArray, BigInt(_))
-
-  given ObfuscationStrategy[BigDecimal] =
-    summon[ObfuscationStrategy[String]].bimap(_.toString, str => BigDecimal(str))
+  given [T: ClassTag](using ss: SecretStrategy[Array[T]]): SecretStrategy[ArraySeq[T]] =
+    ss.bimap(_.toArray, ArraySeq.from)

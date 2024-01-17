@@ -16,9 +16,8 @@ object TypesafeConfigSecretAdapter:
     (config: Config, path: String) => f(config)(path)
 
   // numbers
-  given TypesafeConfigSecretAdapter[String]     = of(_.getString)
-  given TypesafeConfigSecretAdapter[Int]        = of(_.getInt)
   given TypesafeConfigSecretAdapter[Short]      = of(c => p => c.getInt(p).toShort)
+  given TypesafeConfigSecretAdapter[Int]        = of(_.getInt)
   given TypesafeConfigSecretAdapter[Long]       = of(_.getLong)
   given TypesafeConfigSecretAdapter[Float]      = of(c => p => c.getDouble(p).toFloat)
   given TypesafeConfigSecretAdapter[Double]     = of(_.getDouble)
@@ -26,5 +25,8 @@ object TypesafeConfigSecretAdapter:
   given TypesafeConfigSecretAdapter[BigDecimal] = of(c => p => BigDecimal(c.getDouble(p)))
 
   // other
+  given TypesafeConfigSecretAdapter[String]  = of(_.getString)
+  given TypesafeConfigSecretAdapter[Boolean] = of(_.getBoolean)
+
+  // collections
   given TypesafeConfigSecretAdapter[Array[Byte]] = of(c => p => c.getBytesList(p).asScala.toArray.map(_.toByte))
-  given TypesafeConfigSecretAdapter[Boolean]     = of(_.getBoolean)
