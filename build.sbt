@@ -34,13 +34,13 @@ lazy val root: Project = project
   .settings(
     copyReadMe := IO.copyFile(file("docs/compiled/README.md"), file("README.md"))
   )
-  .aggregate(core, docs, pureconfig, typesafeConfig, ciris)
+  .aggregate(core, effect, docs, pureconfig, typesafeConfig, ciris)
 
 lazy val docs: Project =
   project
     .in(file("docs"))
     .enablePlugins(MdocPlugin)
-    .dependsOn(core, pureconfig, typesafeConfig, ciris)
+    .dependsOn(core, effect, pureconfig, typesafeConfig, ciris)
     .settings(
       baseSettings,
       noPublishSettings,
@@ -67,6 +67,15 @@ lazy val core: Project =
 
 // integrations
 lazy val integrationsFolder: String = "./integrations"
+lazy val effect: Project =
+  module("effect")(
+    folder    = s"$integrationsFolder/effect",
+    publishAs = Some(subProjectName("effect"))
+  ).dependsOn(core)
+    .settings(
+      libraryDependencies ++= ProjectDependencies.Integrations.CatsEffect.dedicated
+    )
+
 lazy val pureconfig: Project =
   module("pureconfig")(
     folder    = s"$integrationsFolder/pureconfig",

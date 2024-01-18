@@ -31,6 +31,13 @@ object ProjectDependencies {
 
   object Integrations {
 
+    object CatsEffect {
+      lazy val dedicated: Seq[ModuleID] = List(
+        "org.typelevel" %% "cats-effect"         % catsEffectVersion  % Provided,
+        "org.typelevel" %% "munit-cats-effect-3" % munitEffectVersion % Test
+      )
+    }
+
     object Pureconfig {
       lazy val dedicated: Seq[ModuleID] = List(
         "com.github.pureconfig" %% "pureconfig-core" % pureConfigVersion % Provided
