@@ -33,19 +33,19 @@ object ProjectDependencies {
 
     object Pureconfig {
       lazy val dedicated: Seq[ModuleID] = List(
-        "com.github.pureconfig" %% "pureconfig-core" % pureConfigVersion
+        "com.github.pureconfig" %% "pureconfig-core" % pureConfigVersion % Provided
       )
     }
 
     object TypesafeConfig {
       lazy val dedicated: Seq[ModuleID] = List(
-        "com.typesafe" % "config" % typesafeConfigVersion
+        "com.typesafe" % "config" % typesafeConfigVersion % Provided
       )
     }
 
     object Ciris {
       lazy val dedicated: Seq[ModuleID] = List(
-        "is.cir"        %% "ciris"               % cirisVersion,
+        "is.cir"        %% "ciris"               % cirisVersion       % Provided,
         "org.typelevel" %% "cats-effect"         % catsEffectVersion  % Test,
         "org.typelevel" %% "munit-cats-effect-3" % munitEffectVersion % Test
       )

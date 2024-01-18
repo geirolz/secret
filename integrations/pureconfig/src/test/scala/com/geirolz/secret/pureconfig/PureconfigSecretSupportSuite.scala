@@ -19,9 +19,9 @@ class PureconfigSecretSupportSuite extends munit.FunSuite:
       .toOption
       .get
 
-    val result: ConfigReader.Result[Secret[String]] = summon[ConfigReader[Secret[String]]].from(
-      config.getValue("conf.secret-value")
-    )
+    val result: ConfigReader.Result[Secret[String]] =
+      summon[ConfigReader[Secret[String]]]
+        .from(config.getValue("conf.secret-value"))
 
     assert(
       result
