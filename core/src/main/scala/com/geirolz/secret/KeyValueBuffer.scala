@@ -25,7 +25,7 @@ class KeyValueBuffer(_keyBuffer: KeyBuffer, _obfuscatedBuffer: ObfuscatedValueBu
     clearByteBuffer(_obfuscatedBuffer)
     ()
 
-  def close(): Unit = destroy()
+  inline def close(): Unit = destroy()
 
 object KeyValueBuffer:
   def directEmpty(capacity: Int) = new KeyValueBuffer(

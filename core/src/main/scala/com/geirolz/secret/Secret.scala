@@ -78,7 +78,7 @@ trait Secret[T] extends AutoCloseable:
     *
     * Throws `SecretNoLongerValid` if the secret is destroyed
     */
-  final def unsafeUse[U](f: T => U): U =
+  inline def unsafeUse[U](f: T => U): U =
     use[Either[SecretNoLongerValid, *], U](f).fold(throw _, identity)
 
   /** Apply `f` with the de-obfuscated value WITHOUT destroying it.
@@ -88,11 +88,11 @@ trait Secret[T] extends AutoCloseable:
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
     * other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  final def use[F[_]: MonadSecretError, U](f: T => U): F[U] =
+  inline def use[F[_]: MonadSecretError, U](f: T => U): F[U] =
     evalUse[F, U](f.andThen(_.pure[F]))
 
   /** Alias for `use` with `Either[Throwable, *]` */
-  final def useE[U](f: T => U): Either[SecretNoLongerValid, U] =
+  inline def useE[U](f: T => U): Either[SecretNoLongerValid, U] =
     use[Either[SecretNoLongerValid, *], U](f)
 
   /** Apply `f` with the de-obfuscated value and then destroy the secret value by invoking `destroy` method.
@@ -100,11 +100,11 @@ trait Secret[T] extends AutoCloseable:
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
     * other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  final def useAndDestroy[F[_]: MonadSecretError, U](f: T => U): F[U] =
+  inline def useAndDestroy[F[_]: MonadSecretError, U](f: T => U): F[U] =
     evalUseAndDestroy[F, U](f.andThen(_.pure[F]))
 
   /** Alias for `useAndDestroy` with `Either[Throwable, *]` */
-  final def useAndDestroyE[U](f: T => U): Either[SecretNoLongerValid, U] =
+  inline def useAndDestroyE[U](f: T => U): Either[SecretNoLongerValid, U] =
     useAndDestroy[Either[SecretNoLongerValid, *], U](f)
 
   /** Apply `f` with the de-obfuscated value and then destroy the secret value by invoking `destroy` method.
@@ -112,13 +112,13 @@ trait Secret[T] extends AutoCloseable:
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
     * other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  final def evalUseAndDestroy[F[_]: MonadSecretError, U](f: T => F[U]): F[U] =
+  inline def evalUseAndDestroy[F[_]: MonadSecretError, U](f: T => F[U]): F[U] =
     evalUse(f).map { u =>
       destroy(); u
     }
 
   /** Alias for `destroy` */
-  final override def close(): Unit = destroy()
+  inline override def close(): Unit = destroy()
 
   /** Safely compare this secret with the provided `Secret`.
     *
@@ -129,12 +129,12 @@ trait Secret[T] extends AutoCloseable:
     evalUse[Try, Boolean](thisValue => that.use[Try, Boolean](_ === thisValue)).getOrElse(false)
 
   /** Always returns `false`, use `isEqual` instead */
-  final override def equals(obj: Any): Boolean = false
+  inline override def equals(obj: Any): Boolean = false
 
   /** @return
     *   always returns a static place holder string "** SECRET **" to avoid leaking information
     */
-  final override def toString: String = "** SECRET **"
+  inline override val toString = "** SECRET **"
 
 object Secret extends SecretInstances with DefaultSecretStrategyInstances:
   def apply[T](value: T)(using strategy: SecretStrategy[T]): Secret[T] =

@@ -17,7 +17,7 @@ object ProjectDependencies {
 
   lazy val common: Seq[ModuleID] = Seq(
     // base
-    "org.typelevel" %% "cats-core" % catsVersion % Provided,
+    "org.typelevel" %% "cats-core" % catsVersion,
 
     // test
     "org.scalameta"  %% "munit"            % munitVersion % Test,
@@ -33,26 +33,26 @@ object ProjectDependencies {
 
     object CatsEffect {
       lazy val dedicated: Seq[ModuleID] = List(
-        "org.typelevel" %% "cats-effect"         % catsEffectVersion  % Provided,
+        "org.typelevel" %% "cats-effect"         % catsEffectVersion,
         "org.typelevel" %% "munit-cats-effect-3" % munitEffectVersion % Test
       )
     }
 
     object Pureconfig {
       lazy val dedicated: Seq[ModuleID] = List(
-        "com.github.pureconfig" %% "pureconfig-core" % pureConfigVersion % Provided
+        "com.github.pureconfig" %% "pureconfig-core" % pureConfigVersion
       )
     }
 
     object TypesafeConfig {
       lazy val dedicated: Seq[ModuleID] = List(
-        "com.typesafe" % "config" % typesafeConfigVersion % Provided
+        "com.typesafe" % "config" % typesafeConfigVersion
       )
     }
 
     object Ciris {
       lazy val dedicated: Seq[ModuleID] = List(
-        "is.cir"        %% "ciris"               % cirisVersion       % Provided,
+        "is.cir"        %% "ciris"               % cirisVersion,
         "org.typelevel" %% "cats-effect"         % catsEffectVersion  % Test,
         "org.typelevel" %% "munit-cats-effect-3" % munitEffectVersion % Test
       )

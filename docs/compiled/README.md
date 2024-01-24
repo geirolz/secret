@@ -8,7 +8,7 @@
 [![Mergify Status](https://img.shields.io/endpoint.svg?url=https://api.mergify.com/v1/badges/geirolz/secret&style=flat)](https://mergify.io)
 [![GitHub license](https://img.shields.io/github/license/geirolz/secret)](https://github.com/geirolz/secret/blob/main/LICENSE)
 
-A functional, type-safe and memory-safe library to handle secret values 
+A Scala 3, functional, type-safe and memory-safe library to handle secret values 
 
 `Secret` library does the best to avoid leaking information in memory and in the code BUT an attack is always possible and I don't give any certainties or
 guarantees about security using this library, you use it at your own risk. The code is open sourced, you can check the implementation and take your
@@ -51,13 +51,6 @@ To get started with Secret, follow these steps:
 
 1. **Installation:** Include the library as a dependency in your Scala project. You can find the latest version and
    installation instructions in the [Secret GitHub repository](https://github.com/geirolz/secret).
-
-
-Scala2.13
-```sbt
-libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.1" cross CrossVersion.for2_13Use3
-scalacOptions += "-Ytasty-reader"
-```
 
 Scala3
 ```sbt

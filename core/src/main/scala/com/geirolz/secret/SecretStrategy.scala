@@ -23,9 +23,10 @@ object SecretStrategy extends SecretStrategyBuilders with DefaultSecretStrategyI
         deObfuscator = DeObfuscator(bufferTuple => fD(deObfuscator(bufferTuple)))
       )
 
-  def apply[P: SecretStrategy]: SecretStrategy[P] = summon[SecretStrategy[P]]
+  inline def apply[P: SecretStrategy]: SecretStrategy[P] =
+    summon[SecretStrategy[P]]
 
-  def apply[P](obfuscator: Obfuscator[P], deObfuscator: DeObfuscator[P]): SecretStrategy[P] =
+  inline def apply[P](obfuscator: Obfuscator[P], deObfuscator: DeObfuscator[P]): SecretStrategy[P] =
     (obfuscator, deObfuscator)
 
   // ------------------ Obfuscator ------------------
@@ -34,10 +35,10 @@ object SecretStrategy extends SecretStrategyBuilders with DefaultSecretStrategyI
 
     extension [P](obfuscator: Obfuscator[P])
       /** Obfuscate a plain value. */
-      def apply(plain: P): KeyValueBuffer = obfuscator(plain)
+      inline def apply(plain: P): KeyValueBuffer = obfuscator(plain)
 
     /** Create a new Obfuscator from a function. */
-    def apply[P](f: P => KeyValueBuffer): Obfuscator[P] = f
+    inline def apply[P](f: P => KeyValueBuffer): Obfuscator[P] = f
 
     /** Create a new Obfuscator which obfuscate value using a Xor formula.
       *
@@ -84,10 +85,10 @@ object SecretStrategy extends SecretStrategyBuilders with DefaultSecretStrategyI
 
     extension [P](obfuscator: DeObfuscator[P])
       /** DeObfuscate an obfuscated value. */
-      def apply(bufferTuple: KeyValueBuffer): P = obfuscator(bufferTuple)
+      inline def apply(bufferTuple: KeyValueBuffer): P = obfuscator(bufferTuple)
 
     /** Create a new DeObfuscator from a function. */
-    def apply[P](f: KeyValueBuffer => P): DeObfuscator[P] = f
+    inline def apply[P](f: KeyValueBuffer => P): DeObfuscator[P] = f
 
     /** Create a new DeObfuscator which de-obfuscate value using a Xor formula.
       *
