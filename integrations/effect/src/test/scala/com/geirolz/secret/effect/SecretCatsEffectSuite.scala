@@ -1,4 +1,3 @@
 package com.geirolz.secret.effect
 
-class SecretCatsEffectSuite extends munit.CatsEffectSuite {
-}
+class SecretCatsEffectSuite extends munit.CatsEffectSuite {}
