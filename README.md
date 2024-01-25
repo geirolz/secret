@@ -54,7 +54,7 @@ To get started with Secret, follow these steps:
 
 Scala3
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.1"
+libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.2"
 ```
 
 ### Integrations
@@ -64,14 +64,14 @@ strengths of both Secret and the respective libraries.
 
 #### Pureconfig
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.1"
+libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.2"
 ```
 ```scala
 import com.geirolz.secret.pureconfig.given
 ```
 #### Typesafe Config
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.1"
+libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.2"
 ```
 ```scala
 import com.geirolz.secret.typesafe.config.given
@@ -79,7 +79,7 @@ import com.geirolz.secret.typesafe.config.given
 
 #### Ciris
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.1"
+libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.2"
 ```
 ```scala
 import com.geirolz.secret.ciris.given
