@@ -9,10 +9,10 @@ object TypesafeConfigSecretAdapter:
 
   import scala.jdk.CollectionConverters.*
 
-  def apply[P: TypesafeConfigSecretAdapter]: TypesafeConfigSecretAdapter[P] =
+  inline def apply[P: TypesafeConfigSecretAdapter]: TypesafeConfigSecretAdapter[P] =
     summon[TypesafeConfigSecretAdapter[P]]
 
-  def of[P](f: Config => String => P): TypesafeConfigSecretAdapter[P] =
+  inline def of[P](f: Config => String => P): TypesafeConfigSecretAdapter[P] =
     (config: Config, path: String) => f(config)(path)
 
   // numbers

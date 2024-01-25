@@ -35,10 +35,10 @@ object SecretStrategy extends SecretStrategyBuilders with DefaultSecretStrategyI
 
     extension [P](obfuscator: Obfuscator[P])
       /** Obfuscate a plain value. */
-      inline def apply(plain: P): KeyValueBuffer = obfuscator(plain)
+      def apply(plain: P): KeyValueBuffer = obfuscator(plain)
 
     /** Create a new Obfuscator from a function. */
-    inline def apply[P](f: P => KeyValueBuffer): Obfuscator[P] = f
+    def apply[P](f: P => KeyValueBuffer): Obfuscator[P] = f
 
     /** Create a new Obfuscator which obfuscate value using a Xor formula.
       *
@@ -85,10 +85,10 @@ object SecretStrategy extends SecretStrategyBuilders with DefaultSecretStrategyI
 
     extension [P](obfuscator: DeObfuscator[P])
       /** DeObfuscate an obfuscated value. */
-      inline def apply(bufferTuple: KeyValueBuffer): P = obfuscator(bufferTuple)
+      def apply(bufferTuple: KeyValueBuffer): P = obfuscator(bufferTuple)
 
     /** Create a new DeObfuscator from a function. */
-    inline def apply[P](f: KeyValueBuffer => P): DeObfuscator[P] = f
+    def apply[P](f: KeyValueBuffer => P): DeObfuscator[P] = f
 
     /** Create a new DeObfuscator which de-obfuscate value using a Xor formula.
       *
@@ -143,7 +143,7 @@ private[secret] sealed trait SecretStrategyBuilders:
       deObfuscator = buildDeObfuscator((buffer: PlainValueBuffer) => readBuffer(buffer.rewind().asReadOnlyBuffer()))
     )
 
-  def defaultForString(charset: Charset): SecretStrategy[String] =
+  inline def defaultForString(charset: Charset): SecretStrategy[String] =
     secretStrategyForBytes.bimap(_.getBytes(charset), new String(_, charset))
 
 private[secret] trait DefaultSecretStrategyInstances:
