@@ -29,7 +29,7 @@ jobs:
         include:
           - scala: 3.3.1
             name: Scala3_3
-            test-tasks: scalafmtCheck test gen-doc
+            test-tasks: scalafmtCheck gen-doc coverage test
 
     steps:
       - uses: actions/checkout@v3
