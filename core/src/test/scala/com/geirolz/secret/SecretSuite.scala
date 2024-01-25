@@ -34,6 +34,48 @@ class SecretSuite extends munit.ScalaCheckSuite {
     Secret("TEST").useAndDestroyE(_ => ())
   }
 
+  test("Option Secret getOrEmptySecret") {
+
+    // some
+    val someSecret: Option[Secret[String]] = Option(Secret("TEST"))
+    someSecret.getOrEmptySecret.useAndDestroyE { value =>
+      assertEquals(
+        obtained = value,
+        expected = "TEST"
+      )
+    }
+
+    // none
+    val noneSecret: Option[Secret[String]] = None
+    noneSecret.getOrEmptySecret.useAndDestroyE { value =>
+      assertEquals(
+        obtained = value,
+        expected = ""
+      )
+    }
+  }
+
+  test("Either Secret getOrEmptySecret") {
+
+    // some
+    val rightSecret: Either[String, Secret[String]] = Right(Secret("TEST"))
+    rightSecret.getOrEmptySecret.useAndDestroyE { value =>
+      assertEquals(
+        obtained = value,
+        expected = "TEST"
+      )
+    }
+
+    // none
+    val leftSecret: Either[String, Secret[String]] = Left("ERROR")
+    leftSecret.getOrEmptySecret.useAndDestroyE { value =>
+      assertEquals(
+        obtained = value,
+        expected = ""
+      )
+    }
+  }
+
   test("Simple Secret with long String") {
     Secret(
       """|C#iur0#UsxTWzUZ5QPn%KGo$922SMvc5zYLqrcdE6SU6ZpFQrk3&W

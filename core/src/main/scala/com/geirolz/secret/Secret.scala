@@ -1,6 +1,6 @@
 package com.geirolz.secret
 
-import cats.{Eq, Show}
+import cats.{Eq, Monoid, Show}
 import com.geirolz.secret.Secret.*
 
 import scala.util.Try
@@ -136,7 +136,10 @@ trait Secret[T] extends AutoCloseable:
     */
   inline override val toString = "** SECRET **"
 
-object Secret extends SecretInstances with DefaultSecretStrategyInstances:
+object Secret extends SecretSyntax, SecretInstances, DefaultSecretStrategyInstances:
+
+  final val empty: Secret[String] = Secret("")
+
   def apply[T](value: T)(using strategy: SecretStrategy[T]): Secret[T] =
     new Secret[T] {
 
@@ -159,6 +162,16 @@ object Secret extends SecretInstances with DefaultSecretStrategyInstances:
       override def hashCode(): Int =
         if (isDestroyed) -1 else bufferTuple.obfuscatedHashCode
     }
+
+private[secret] sealed transparent trait SecretSyntax:
+
+  extension [T: SecretStrategy: Monoid](optSecret: Option[Secret[T]])
+    def getOrEmptySecret: Secret[T] =
+      optSecret.getOrElse(Secret(Monoid[T].empty))
+
+  extension [L, T: SecretStrategy: Monoid](eSecret: Either[L, Secret[T]])
+    def getOrEmptySecret: Secret[T] =
+      eSecret.toOption.getOrEmptySecret
 
 private[secret] sealed transparent trait SecretInstances:
 
