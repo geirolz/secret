@@ -146,7 +146,7 @@ private[secret] sealed trait SecretStrategyBuilders:
   inline def defaultForString(charset: Charset): SecretStrategy[String] =
     secretStrategyForBytes.bimap(_.getBytes(charset), new String(_, charset))
 
-private[secret] trait DefaultSecretStrategyInstances:
+private[secret] transparent trait DefaultSecretStrategyInstances:
 
   given SecretStrategy[Short] =
     SecretStrategy.withDefaultDirectByteBuffer(2)(_.putShort, _.getShort)

@@ -160,7 +160,7 @@ object Secret extends SecretInstances with DefaultSecretStrategyInstances:
         if (isDestroyed) -1 else bufferTuple.obfuscatedHashCode
     }
 
-private[secret] sealed trait SecretInstances:
+private[secret] sealed transparent trait SecretInstances:
 
   given [T]: Hashing[Secret[T]] =
     Hashing.fromFunction(_.hashCode())
