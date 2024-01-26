@@ -89,22 +89,60 @@ import com.geirolz.secret.ciris.given
 
 If you are using Secret in your company, please let me know and I'll add it to the list! It means a lot to me.
 
-## Custom Obfuscation Strategy
+## Custom Obfuscation Strategy for a specific type
 
-If you want to use a custom obfuscation strategy you can implement a custom `SecretStrategy` and provide an implicit instance of it during the secret creation.
+If you want to use a custom obfuscation strategy for a specific type you can implement a custom `SecretStrategy` and provide an implicit instance of it during the secret creation.
 If you think that your strategy can be useful for other people, please consider to contribute to the project and add it to the library.
 
 ```scala
-import com.geirolz.secret.SecretStrategy.{DeObfuscator, Obfuscator}
-import com.geirolz.secret.{KeyValueBuffer, Secret, SecretStrategy}
+import com.geirolz.secret.strategy.SecretStrategy
+import com.geirolz.secret.strategy.SecretStrategy.{DeObfuscator, Obfuscator}
+import com.geirolz.secret.{KeyValueBuffer, Secret}
 
 given SecretStrategy[String] = SecretStrategy[String](
-  Obfuscator[String](_ => KeyValueBuffer.directEmpty(0)),
-  DeObfuscator[String](_ => "CUSTOM"),
+   Obfuscator.of[String](_ => KeyValueBuffer.directEmpty(0)),
+   DeObfuscator.of[String](_ => "CUSTOM"),
 )
 
 Secret("my_password").useE(secret => secret)
 // res5: Either[SecretNoLongerValid, String] = Right(value = "CUSTOM")
+```
+
+## Custom Obfuscation Strategy algebra
+
+If you want to use a custom obfuscation strategy algebra can implement a custom `SecretStrategyAlgebra` and provide an implicit `SecretStrategyFactory` instance built on it during the secret creation.
+If you think that your strategy can be useful for other people, please consider to contribute to the project and add it to the library.
+
+```scala
+import com.geirolz.secret.strategy.SecretStrategy.{DeObfuscator, Obfuscator}
+import com.geirolz.secret.strategy.{SecretStrategy, SecretStrategyAlgebra}
+import com.geirolz.secret.{KeyValueBuffer, PlainValueBuffer, Secret}
+
+import java.nio.ByteBuffer
+
+// build the custom algebra
+val myCustomAlgebra = new SecretStrategyAlgebra:
+   final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
+      Obfuscator.of { (plain: P) => KeyValueBuffer(ByteBuffer.allocateDirect(0), f(plain)) }
+   
+   final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
+      DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp6$$anon$4@706ed1ba
+
+// build factory base on the algebra
+val myCustomStrategyFactory = myCustomAlgebra.newFactory
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@5f0a8bbe
+
+// implicitly in the scope
+import myCustomStrategyFactory.given
+Secret("my_password").useE(secret => secret)
+// res7: Either[SecretNoLongerValid, String] = Right(value = "my_password")
+
+// or restricted to a specific scope
+myCustomStrategyFactory {
+   Secret("my_password").useE(secret => secret)
+}
+// res8: Either[SecretNoLongerValid, String] = Right(value = "my_password")
 ```
 
 ## Contributing
