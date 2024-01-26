@@ -31,13 +31,18 @@ class SecretStrategyFactory private[secret] (algebra: SecretStrategyAlgebra):
     readBuffer: PlainValueBuffer => P
   ): SecretStrategy[P] =
     SecretStrategy(
-      obfuscator   = buildObfuscator((plainValue: P) => fillBuffer(ByteBuffer.allocateDirect(capacity)).apply(plainValue)),
-      deObfuscator = buildDeObfuscator((buffer: PlainValueBuffer) => readBuffer(buffer.rewind().asReadOnlyBuffer()))
+      buildObfuscator((plainValue: P) => fillBuffer(ByteBuffer.allocateDirect(capacity)).apply(plainValue)),
+      buildDeObfuscator((buffer: PlainValueBuffer) => readBuffer(buffer.rewind().asReadOnlyBuffer()))
     )
 
-  def directByteBufferForArray[U: ClassTag](toBytes: Array[U] => Array[Byte], toUs: Array[Byte] => Array[U]): SecretStrategy[Array[U]] =
+  def directByteBufferForArray[U: ClassTag](
+    toBytes: Array[U] => Array[Byte],
+    toUs: Array[Byte] => Array[U]
+  ): SecretStrategy[Array[U]] =
     strategy.SecretStrategy[Array[U]](
-      obfuscator = algebra.obfuscator((plainBytes: Array[U]) => ByteBuffer.allocateDirect(plainBytes.length).put(toBytes(plainBytes))),
+      obfuscator = algebra.obfuscator((plainBytes: Array[U]) =>
+        ByteBuffer.allocateDirect(plainBytes.length).put(toBytes(plainBytes))
+      ),
       deObfuscator = algebra.deObfuscator((plainBuffer: PlainValueBuffer) => {
         val result = new Array[Byte](plainBuffer.capacity())
         plainBuffer.rewind().get(result)

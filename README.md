@@ -43,6 +43,12 @@ val database: Try[Database]       = secretString.useAndDestroy[Try, Database](pa
 // database: Try[Database] = Success(
 //   value = Database(password = "my_password")
 // )
+
+// if you try to access the secret value once used, you'll get an error
+secretString.useE(println(_))
+// res1: Either[SecretNoLongerValid, Unit] = Left(
+//   value = SecretNoLongerValid(location = README.md:28:111)
+// )
 ```   
 
 ## Getting Started
@@ -105,12 +111,12 @@ given SecretStrategy[String] = SecretStrategy[String](
 )
 
 Secret("my_password").useE(secret => secret)
-// res5: Either[SecretNoLongerValid, String] = Right(value = "CUSTOM")
+// res6: Either[SecretNoLongerValid, String] = Right(value = "CUSTOM")
 ```
 
 ## Custom Obfuscation Strategy algebra
 
-If you want to use a custom obfuscation strategy algebra can implement a custom `SecretStrategyAlgebra` and provide an implicit `SecretStrategyFactory` instance built on it during the secret creation.
+If you want to use a custom obfuscation strategy algebra you can implement a custom `SecretStrategyAlgebra` and provide an implicit `SecretStrategyFactory` instance built on it during the secret creation.
 If you think that your strategy can be useful for other people, please consider to contribute to the project and add it to the library.
 
 ```scala
@@ -127,22 +133,23 @@ val myCustomAlgebra = new SecretStrategyAlgebra:
    
    final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
       DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp6$$anon$4@706ed1ba
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp7$$anon$5@2994e37e
 
-// build factory base on the algebra
+// build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@5f0a8bbe
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@102c300b
 
+// ----------------------------- USAGE -----------------------------
 // implicitly in the scope
 import myCustomStrategyFactory.given
 Secret("my_password").useE(secret => secret)
-// res7: Either[SecretNoLongerValid, String] = Right(value = "my_password")
+// res8: Either[SecretNoLongerValid, String] = Right(value = "my_password")
 
 // or restricted to a specific scope
 myCustomStrategyFactory {
    Secret("my_password").useE(secret => secret)
 }
-// res8: Either[SecretNoLongerValid, String] = Right(value = "my_password")
+// res9: Either[SecretNoLongerValid, String] = Right(value = "my_password")
 ```
 
 ## Contributing

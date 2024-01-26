@@ -9,8 +9,8 @@ import scala.util.control.NoStackTrace
 type PlainValueBuffer               = ByteBuffer
 type ObfuscatedValueBuffer          = ByteBuffer
 type KeyBuffer                      = ByteBuffer
-private type MonadSecretError[F[_]] = MonadError[F, ? >: SecretNoLongerValid]
+private type MonadSecretError[F[_]] = MonadError[F, ? >: SecretDestroyed]
 
-case class SecretNoLongerValid(location: Location)
-    extends RuntimeException(s"This secret value is no longer valid.\nAlready used at: $location")
+case class SecretDestroyed(destroyedAt: Location)
+    extends RuntimeException(s"This secret destroyed.\nAlready used at: $destroyedAt")
     with NoStackTrace

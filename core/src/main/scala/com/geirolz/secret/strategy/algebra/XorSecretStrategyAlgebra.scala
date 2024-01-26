@@ -41,7 +41,11 @@ private[strategy] object XorSecretStrategyAlgebra:
         val valueBuffer: ObfuscatedValueBuffer   = ByteBuffer.allocateDirect(capacity)
         for (i <- 0 until capacity)
           valueBuffer.put(
-            (plainBuffer.get(i) ^ (keyBuffer.get(capacity - 1 - i) ^ (capacity * i).toByte)).toByte
+            (
+              //format: off
+              plainBuffer.get(i) ^ (keyBuffer.get(capacity - 1 - i) ^ (capacity * i).toByte)
+              //format: on
+            ).toByte
           )
 
         // clear plainBuffer
@@ -69,7 +73,11 @@ private[strategy] object XorSecretStrategyAlgebra:
 
         for (i <- 0 until capacity)
           plainValueBuffer.put(
-            (bufferTuple.roObfuscatedBuffer.get(i) ^ (bufferTuple.roKeyBuffer.get(capacity - 1 - i) ^ (capacity * i).toByte)).toByte
+            (
+              //format: off
+              bufferTuple.roObfuscatedBuffer.get(i) ^ (bufferTuple.roKeyBuffer.get(capacity - 1 - i) ^ (capacity * i).toByte)
+              //format: on
+            ).toByte
           )
 
         val result = f(plainValueBuffer.asReadOnlyBuffer())

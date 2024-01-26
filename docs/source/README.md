@@ -39,6 +39,9 @@ def initDb(password: String): Database = Database(password)
 
 val secretString: Secret[String]  = Secret("my_password")
 val database: Try[Database]       = secretString.useAndDestroy[Try, Database](password => initDb(password))
+
+// if you try to access the secret value once used, you'll get an error
+secretString.useE(println(_))
 ```   
 
 ## Getting Started

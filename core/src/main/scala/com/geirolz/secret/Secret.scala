@@ -10,22 +10,24 @@ import scala.util.hashing.Hashing
 
 /** Memory-safe and type-safe secret value of type `T`.
   *
-  * `Secret` does the best to avoid leaking information in memory and in the code BUT an attack is possible and I don't give any certainties or
-  * guarantees about security using this class, you use it at your own risk. Code is open source, you can check the implementation and take your
-  * decision consciously. I'll do my best to improve the security and documentation of this class.
+  * `Secret` does the best to avoid leaking information in memory and in the code BUT an attack is possible and I don't
+  * give any certainties or guarantees about security using this class, you use it at your own risk. Code is open
+  * source, you can check the implementation and take your decision consciously. I'll do my best to improve the security
+  * and documentation of this class.
   *
   * <b>Obfuscation</b>
   *
-  * The value is obfuscated when creating the `Secret` instance using the given `SecretStrategy` which, by default, transform the value into a xor-ed
-  * `ByteBuffer` witch store bytes outside the JVM using direct memory access.
+  * The value is obfuscated when creating the `Secret` instance using the given `SecretStrategy` which, by default,
+  * transform the value into a xor-ed `ByteBuffer` witch store bytes outside the JVM using direct memory access.
   *
-  * The obfuscated value is de-obfuscated using the given `SecretStrategy` instance every time the method `use` is invoked which returns the original
-  * value converting bytes back to `T` re-apply the xor.
+  * The obfuscated value is de-obfuscated using the given `SecretStrategy` instance every time the method `use` is
+  * invoked which returns the original value converting bytes back to `T` re-apply the xor.
   *
   * <b>API and Type safety</b>
   *
-  * While obfuscating the value prevents or at least makes it harder to read the value from memory, Secret class API are designed to avoid leaking
-  * information in other ways. Preventing developers to improperly use the secret value ( logging, etc...).
+  * While obfuscating the value prevents or at least makes it harder to read the value from memory, Secret class API are
+  * designed to avoid leaking information in other ways. Preventing developers to improperly use the secret value (
+  * logging, etc...).
   *
   * Example
   * {{{
@@ -41,8 +43,8 @@ trait Secret[T] extends AutoCloseable:
     *
     * If the secret is destroyed it will raise a `NoLongerValidSecret` exception.
     *
-    * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
-    * other methods, it will raise a `NoLongerValidSecret` exception.
+    * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`,
+    * `evalUse`, `evalUseAndDestroy` and other methods, it will raise a `NoLongerValidSecret` exception.
     */
   def evalUse[F[_]: MonadSecretError, U](f: T => F[U]): F[U]
 
@@ -50,8 +52,8 @@ trait Secret[T] extends AutoCloseable:
     *
     * This method is idempotent.
     *
-    * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
-    * other methods, it will raise a `NoLongerValidSecret` exception.
+    * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`,
+    * `evalUse`, `evalUseAndDestroy` and other methods, it will raise a `NoLongerValidSecret` exception.
     */
   def destroy()(using Location): Unit
 
@@ -66,7 +68,8 @@ trait Secret[T] extends AutoCloseable:
     *
     * This hash code is NOT the hash code of the original value. It is the hash code of the obfuscated value.
     *
-    * Since the obfuscated value is based on a random key, the hash code will be different every time. This function is not deterministic.
+    * Since the obfuscated value is based on a random key, the hash code will be different every time. This function is
+    * not deterministic.
     *
     * @return
     *   the hash code of this secret. If the secret is destroyed it will return `-1`.
@@ -81,38 +84,38 @@ trait Secret[T] extends AutoCloseable:
     * Throws `SecretNoLongerValid` if the secret is destroyed
     */
   inline def unsafeUse[U](f: T => U): U =
-    use[Either[SecretNoLongerValid, *], U](f).fold(throw _, identity)
+    use[Either[SecretDestroyed, *], U](f).fold(throw _, identity)
 
   /** Apply `f` with the de-obfuscated value WITHOUT destroying it.
     *
     * If the secret is destroyed it will raise a `NoLongerValidSecret` exception.
     *
-    * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
-    * other methods, it will raise a `NoLongerValidSecret` exception.
+    * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`,
+    * `evalUse`, `evalUseAndDestroy` and other methods, it will raise a `NoLongerValidSecret` exception.
     */
   inline def use[F[_]: MonadSecretError, U](f: T => U): F[U] =
     evalUse[F, U](f.andThen(_.pure[F]))
 
   /** Alias for `use` with `Either[Throwable, *]` */
-  inline def useE[U](f: T => U): Either[SecretNoLongerValid, U] =
-    use[Either[SecretNoLongerValid, *], U](f)
+  inline def useE[U](f: T => U): Either[SecretDestroyed, U] =
+    use[Either[SecretDestroyed, *], U](f)
 
   /** Apply `f` with the de-obfuscated value and then destroy the secret value by invoking `destroy` method.
     *
-    * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
-    * other methods, it will raise a `NoLongerValidSecret` exception.
+    * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`,
+    * `evalUse`, `evalUseAndDestroy` and other methods, it will raise a `NoLongerValidSecret` exception.
     */
   inline def useAndDestroy[F[_]: MonadSecretError, U](f: T => U)(using Location): F[U] =
     evalUseAndDestroy[F, U](f.andThen(_.pure[F]))
 
   /** Alias for `useAndDestroy` with `Either[Throwable, *]` */
-  inline def useAndDestroyE[U](f: T => U)(using Location): Either[SecretNoLongerValid, U] =
-    useAndDestroy[Either[SecretNoLongerValid, *], U](f)
+  inline def useAndDestroyE[U](f: T => U)(using Location): Either[SecretDestroyed, U] =
+    useAndDestroy[Either[SecretDestroyed, *], U](f)
 
   /** Apply `f` with the de-obfuscated value and then destroy the secret value by invoking `destroy` method.
     *
-    * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
-    * other methods, it will raise a `NoLongerValidSecret` exception.
+    * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`,
+    * `evalUse`, `evalUseAndDestroy` and other methods, it will raise a `NoLongerValidSecret` exception.
     */
   inline def evalUseAndDestroy[F[_]: MonadSecretError, U](f: T => F[U])(using Location): F[U] =
     evalUse(f).map { u =>
@@ -157,7 +160,7 @@ object Secret extends SecretSyntax, SecretInstances:
 
       override def evalUse[F[_]: MonadSecretError, U](f: T => F[U]): F[U] =
         if (isDestroyed)
-          SecretNoLongerValid(destructionLocation).raiseError[F, U]
+          SecretDestroyed(destructionLocation).raiseError[F, U]
         else
           f(SecretStrategy[T].deObfuscator(bufferTuple))
 
