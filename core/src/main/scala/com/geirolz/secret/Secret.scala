@@ -2,6 +2,7 @@ package com.geirolz.secret
 
 import cats.{Eq, Monoid, Show}
 import com.geirolz.secret.Secret.*
+import com.geirolz.secret.strategy.SecretStrategy
 
 import scala.util.Try
 import scala.util.hashing.Hashing
@@ -136,9 +137,14 @@ trait Secret[T] extends AutoCloseable:
     */
   inline override val toString = "** SECRET **"
 
-object Secret extends SecretSyntax, SecretInstances, DefaultSecretStrategyInstances:
+object Secret extends SecretSyntax, SecretInstances:
 
-  final val empty: Secret[String] = Secret("")
+  final val empty: Secret[String] = plain("")
+
+  def plain(value: String): Secret[String] =
+    SecretStrategy.plainFactory {
+      Secret(value)
+    }
 
   def apply[T](value: T)(using strategy: SecretStrategy[T]): Secret[T] =
     new Secret[T] {
@@ -163,7 +169,7 @@ object Secret extends SecretSyntax, SecretInstances, DefaultSecretStrategyInstan
         if (isDestroyed) -1 else bufferTuple.obfuscatedHashCode
     }
 
-private[secret] sealed transparent trait SecretSyntax:
+private[secret] transparent sealed trait SecretSyntax:
 
   extension [T: SecretStrategy: Monoid](optSecret: Option[Secret[T]])
     def getOrEmptySecret: Secret[T] =
@@ -173,7 +179,7 @@ private[secret] sealed transparent trait SecretSyntax:
     def getOrEmptySecret: Secret[T] =
       eSecret.toOption.getOrEmptySecret
 
-private[secret] sealed transparent trait SecretInstances:
+private[secret] transparent sealed trait SecretInstances:
 
   given [T]: Hashing[Secret[T]] =
     Hashing.fromFunction(_.hashCode())

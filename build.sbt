@@ -168,7 +168,7 @@ lazy val baseSettings: Seq[Def.Setting[_]] = Seq(
 
 def scalacSettings(scalaVersion: String): Seq[String] =
   Seq(
-    //    "-Xlog-implicits",
+    "-explain",
     //    "-deprecation", // Emit warning and location for usages of deprecated APIs.
     "-encoding",
     "utf-8", // Specify character encoding used by source files.
