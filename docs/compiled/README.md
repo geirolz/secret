@@ -46,8 +46,8 @@ val database: Try[Database]       = secretString.useAndDestroy[Try, Database](pa
 
 // if you try to access the secret value once used, you'll get an error
 secretString.useE(println(_))
-// res1: Either[SecretNoLongerValid, Unit] = Left(
-//   value = SecretNoLongerValid(location = README.md:28:111)
+// res1: Either[SecretDestroyed, Unit] = Left(
+//   value = SecretDestroyed(destroyedAt = README.md:28:111)
 // )
 ```   
 
@@ -111,7 +111,7 @@ given SecretStrategy[String] = SecretStrategy[String](
 )
 
 Secret("my_password").useE(secret => secret)
-// res6: Either[SecretNoLongerValid, String] = Right(value = "CUSTOM")
+// res6: Either[SecretDestroyed, String] = Right(value = "CUSTOM")
 ```
 
 ## Custom Obfuscation Strategy algebra
@@ -133,23 +133,23 @@ val myCustomAlgebra = new SecretStrategyAlgebra:
    
    final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
       DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp7$$anon$5@2994e37e
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp7$$anon$5@45b43215
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@102c300b
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@455cf239
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope
 import myCustomStrategyFactory.given
 Secret("my_password").useE(secret => secret)
-// res8: Either[SecretNoLongerValid, String] = Right(value = "my_password")
+// res8: Either[SecretDestroyed, String] = Right(value = "my_password")
 
 // or restricted to a specific scope
 myCustomStrategyFactory {
    Secret("my_password").useE(secret => secret)
 }
-// res9: Either[SecretNoLongerValid, String] = Right(value = "my_password")
+// res9: Either[SecretDestroyed, String] = Right(value = "my_password")
 ```
 
 ## Contributing
