@@ -26,19 +26,19 @@ private[strategy] object XorSecretStrategyAlgebra:
     final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
 
       def genKeyBuffer(secureRandom: SecureRandom, size: Int): KeyBuffer =
-        val keyBuffer = ByteBuffer.allocateDirect(size)
-        var keyArray  = new Array[Byte](size)
+        val keyBuffer: ByteBuffer        = ByteBuffer.allocateDirect(size)
+        var keyArray: Array[Byte] | Null = new Array[Byte](size)
         secureRandom.nextBytes(keyArray)
         keyBuffer.put(keyArray)
         keyArray = clearByteArray(keyArray)
         keyBuffer
 
       Obfuscator.of { (plain: P) =>
-        val secureRandom: SecureRandom         = new SecureRandom()
-        var plainBuffer: PlainValueBuffer      = f(plain)
-        val capacity: Int                      = plainBuffer.capacity()
-        val keyBuffer: KeyBuffer               = genKeyBuffer(secureRandom, capacity)
-        val valueBuffer: ObfuscatedValueBuffer = ByteBuffer.allocateDirect(capacity)
+        val secureRandom: SecureRandom           = new SecureRandom()
+        var plainBuffer: PlainValueBuffer | Null = f(plain)
+        val capacity: Int                        = plainBuffer.capacity()
+        val keyBuffer: KeyBuffer                 = genKeyBuffer(secureRandom, capacity)
+        val valueBuffer: ObfuscatedValueBuffer   = ByteBuffer.allocateDirect(capacity)
         for (i <- 0 until capacity)
           valueBuffer.put(
             (plainBuffer.get(i) ^ (keyBuffer.get(capacity - 1 - i) ^ (capacity * i).toByte)).toByte
@@ -64,8 +64,8 @@ private[strategy] object XorSecretStrategyAlgebra:
       */
     final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
       DeObfuscator.of { bufferTuple =>
-        val capacity: Int                      = bufferTuple.roKeyBuffer.capacity()
-        var plainValueBuffer: PlainValueBuffer = ByteBuffer.allocateDirect(capacity)
+        val capacity: Int                             = bufferTuple.roKeyBuffer.capacity()
+        var plainValueBuffer: PlainValueBuffer | Null = ByteBuffer.allocateDirect(capacity)
 
         for (i <- 0 until capacity)
           plainValueBuffer.put(

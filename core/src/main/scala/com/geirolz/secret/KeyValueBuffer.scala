@@ -11,8 +11,8 @@ class KeyValueBuffer(_keyBuffer: KeyBuffer, _obfuscatedBuffer: ObfuscatedValueBu
   val roObfuscatedBuffer: ObfuscatedValueBuffer = _obfuscatedBuffer.asReadOnlyBuffer()
 
   lazy val obfuscatedHashCode: Int =
-    val capacity           = roObfuscatedBuffer.capacity()
-    var bytes: Array[Byte] = new scala.Array[Byte](capacity)
+    val capacity                  = roObfuscatedBuffer.capacity()
+    var bytes: Array[Byte] | Null = new scala.Array[Byte](capacity)
     for (i <- 0 until capacity)
       bytes(i) = roObfuscatedBuffer.get(i)
 

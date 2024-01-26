@@ -37,6 +37,12 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
     Secret("TEST").useAndDestroyE(_ => ())
   }
 
+  test("Simple Secret String destroyed") {
+    val s1 = Secret("TEST")
+    s1.useAndDestroyE(_ => ())
+    println(s1.useAndDestroyE(_ => ()))
+  }
+
   test("Option Secret getOrEmptySecret") {
 
     // some
@@ -183,8 +189,8 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
         )
 
         assertEquals(
-          obtained = secret.useAndDestroy[Try, Int](_.hashCode()),
-          expected = Failure(SecretNoLongerValid())
+          obtained = secret.useAndDestroy[Try, Int](_.hashCode()).isFailure,
+          expected = true
         )
         assertEquals(
           obtained = secret.isDestroyed,

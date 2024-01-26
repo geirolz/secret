@@ -2,6 +2,7 @@ package com.geirolz.secret
 
 import cats.{Eq, Monoid, Show}
 import com.geirolz.secret.Secret.*
+import com.geirolz.secret.internal.Location
 import com.geirolz.secret.strategy.SecretStrategy
 
 import scala.util.Try
@@ -52,7 +53,7 @@ trait Secret[T] extends AutoCloseable:
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
     * other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  def destroy(): Unit
+  def destroy()(using Location): Unit
 
   /** Check if the secret is destroyed
     *
@@ -101,11 +102,11 @@ trait Secret[T] extends AutoCloseable:
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
     * other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  inline def useAndDestroy[F[_]: MonadSecretError, U](f: T => U): F[U] =
+  inline def useAndDestroy[F[_]: MonadSecretError, U](f: T => U)(using Location): F[U] =
     evalUseAndDestroy[F, U](f.andThen(_.pure[F]))
 
   /** Alias for `useAndDestroy` with `Either[Throwable, *]` */
-  inline def useAndDestroyE[U](f: T => U): Either[SecretNoLongerValid, U] =
+  inline def useAndDestroyE[U](f: T => U)(using Location): Either[SecretNoLongerValid, U] =
     useAndDestroy[Either[SecretNoLongerValid, *], U](f)
 
   /** Apply `f` with the de-obfuscated value and then destroy the secret value by invoking `destroy` method.
@@ -113,7 +114,7 @@ trait Secret[T] extends AutoCloseable:
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`, `evalUse`, `evalUseAndDestroy` and
     * other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  inline def evalUseAndDestroy[F[_]: MonadSecretError, U](f: T => F[U]): F[U] =
+  inline def evalUseAndDestroy[F[_]: MonadSecretError, U](f: T => F[U])(using Location): F[U] =
     evalUse(f).map { u =>
       destroy(); u
     }
@@ -139,6 +140,8 @@ trait Secret[T] extends AutoCloseable:
 
 object Secret extends SecretSyntax, SecretInstances:
 
+  import cats.syntax.all.given
+
   final val empty: Secret[String] = plain("")
 
   def plain(value: String): Secret[String] =
@@ -149,17 +152,19 @@ object Secret extends SecretSyntax, SecretInstances:
   def apply[T](value: T)(using strategy: SecretStrategy[T]): Secret[T] =
     new Secret[T] {
 
-      private var bufferTuple: KeyValueBuffer = strategy.obfuscator(value)
+      private var bufferTuple: KeyValueBuffer | Null   = strategy.obfuscator(value)
+      private var destructionLocation: Location | Null = _
 
       override def evalUse[F[_]: MonadSecretError, U](f: T => F[U]): F[U] =
         if (isDestroyed)
-          summon[MonadSecretError[F]].raiseError(SecretNoLongerValid())
+          SecretNoLongerValid(destructionLocation).raiseError[F, U]
         else
           f(SecretStrategy[T].deObfuscator(bufferTuple))
 
-      override def destroy(): Unit =
+      override def destroy()(using location: Location): Unit =
         bufferTuple.destroy()
-        bufferTuple = null
+        bufferTuple         = null
+        destructionLocation = location
 
       override def isDestroyed: Boolean =
         bufferTuple == null
