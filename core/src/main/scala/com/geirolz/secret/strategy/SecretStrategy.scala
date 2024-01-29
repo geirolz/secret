@@ -7,7 +7,7 @@ opaque type SecretStrategy[P] = (Obfuscator[P], DeObfuscator[P])
 object SecretStrategy extends SecretStrategyFactory(SecretStrategyAlgebra.xor):
 
   final lazy val plainFactory = SecretStrategyAlgebra.plain.newFactory
-  final lazy val xorFactory   = SecretStrategyAlgebra.xor.newFactory
+  final lazy val xorFactory   = this
 
   extension [P](strategy: SecretStrategy[P])
     def obfuscator: Obfuscator[P]     = strategy._1
