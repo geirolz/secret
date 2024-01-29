@@ -31,6 +31,6 @@ object TypesafeConfigSecretAdapter:
   // collections
   given tcAdapterForBytes: TypesafeConfigSecretAdapter[Array[Byte]] =
     of(c => p => c.getBytesList(p).asScala.toArray.map(_.toByte))
-    
-  given tcAdapterForChars: TypesafeConfigSecretAdapter[Array[Char]] = 
+
+  given tcAdapterForChars: TypesafeConfigSecretAdapter[Array[Char]] =
     of(c => c.getString(_).toCharArray)
