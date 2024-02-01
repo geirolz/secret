@@ -1,7 +1,6 @@
-package com.geirolz.secret.effect
+package com.geirolz.secret
 
 import cats.effect.{Async, Resource}
-import com.geirolz.secret.Secret
 
 extension [T](secret: Secret[T])
   inline def resource[F[_]: Async]: Resource[F, T] =

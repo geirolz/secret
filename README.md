@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/geirolz/secret/actions/workflows/cicd.yml/badge.svg)](https://github.com/geirolz/secret/actions)
 [![codecov](https://img.shields.io/codecov/c/github/geirolz/secret)](https://codecov.io/gh/geirolz/secret)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/db3274b55e0c4031803afb45f58d4413)](https://www.codacy.com/manual/david.geirola/secret?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=geirolz/secret&amp;utm_campaign=Badge_Grade)
-[![Sonatype Nexus (Releases)](https://img.shields.io/nexus/r/com.github.geirolz/secret_2.13?server=https%3A%2F%2Foss.sonatype.org)](https://mvnrepository.com/artifact/com.github.geirolz/secret)
+[![Sonatype Nexus (Releases)](https://img.shields.io/nexus/r/com.github.geirolz/secret_3?server=https%3A%2F%2Foss.sonatype.org)](https://mvnrepository.com/artifact/com.github.geirolz/secret)
 [![Scala Steward badge](https://img.shields.io/badge/Scala_Steward-helping-blue.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII=)](https://scala-steward.org)
 [![Mergify Status](https://img.shields.io/endpoint.svg?url=https://api.mergify.com/v1/badges/geirolz/secret&style=flat)](https://mergify.io)
 [![GitHub license](https://img.shields.io/github/license/geirolz/secret)](https://github.com/geirolz/secret/blob/main/LICENSE)
@@ -68,6 +68,18 @@ libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.2"
 These integrations aim to enhance the functionality and capabilities of your applications by leveraging the features and
 strengths of both Secret and the respective libraries.
 
+#### Cats Effect
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.2"
+```
+
+```scala
+import com.geirolz.secret.*
+import cats.effect.{IO, Resource}
+
+val res: Resource[IO, String] = Secret("password").resource[IO]
+```
+
 #### Pureconfig
 ```sbt
 libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.2"
@@ -111,7 +123,7 @@ given SecretStrategy[String] = SecretStrategy[String](
 )
 
 Secret("my_password").useE(secret => secret)
-// res6: Either[SecretDestroyed, String] = Right(value = "CUSTOM")
+// res7: Either[SecretDestroyed, String] = Right(value = "CUSTOM")
 ```
 
 ## Custom Obfuscation Strategy algebra
@@ -133,23 +145,23 @@ val myCustomAlgebra = new SecretStrategyAlgebra:
    
    final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
       DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp7$$anon$5@45b43215
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp8$$anon$6@5d45c1df
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@455cf239
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@7ed39e83
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope
 import myCustomStrategyFactory.given
 Secret("my_password").useE(secret => secret)
-// res8: Either[SecretDestroyed, String] = Right(value = "my_password")
+// res9: Either[SecretDestroyed, String] = Right(value = "my_password")
 
 // or restricted to a specific scope
 myCustomStrategyFactory {
    Secret("my_password").useE(secret => secret)
 }
-// res9: Either[SecretDestroyed, String] = Right(value = "my_password")
+// res10: Either[SecretDestroyed, String] = Right(value = "my_password")
 ```
 
 ## Contributing
