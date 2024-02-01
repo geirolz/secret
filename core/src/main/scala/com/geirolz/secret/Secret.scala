@@ -76,7 +76,20 @@ trait Secret[T] extends AutoCloseable:
     */
   def hashCode(): Int
 
+  /** Create another Secret with the same value if this has not been destroyed.
+    * @return
+    */
+  private[secret] def duplicate[F[_]: MonadSecretError]: F[Secret[T]]
+
   // ------------------------------------------------------------------
+
+  /** Directly access Secret value if not destroyed.
+    *
+    * The usage of this method is discouraged. Use `use*` instead.
+    */
+  private[secret] inline def directAccess[F[_]: MonadSecretError]: F[T] =
+    use[F, T](identity)
+
   /** Avoid this method if possible. Unsafely apply `f` with the de-obfuscated value WITHOUT destroying it.
     *
     * If the secret is destroyed it will raise a `NoLongerValidSecret` exception.
@@ -164,6 +177,9 @@ object Secret extends SecretSyntax, SecretInstances:
           SecretDestroyed(destructionLocation).raiseError[F, U]
         else
           f(SecretStrategy[T].deObfuscator(bufferTuple))
+
+      override private[secret] def duplicate[F[_]: MonadSecretError]: F[Secret[T]] =
+        use[F, Secret[T]](value => Secret(value))
 
       override def destroy()(using location: Location): Unit =
         bufferTuple.destroy()
