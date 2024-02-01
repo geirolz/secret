@@ -8,7 +8,7 @@
 [![Mergify Status](https://img.shields.io/endpoint.svg?url=https://api.mergify.com/v1/badges/geirolz/secret&style=flat)](https://mergify.io)
 [![GitHub license](https://img.shields.io/github/license/geirolz/secret)](https://github.com/geirolz/secret/blob/main/LICENSE)
 
-A Scala 3, functional, type-safe and memory-safe library to handle secret values 
+A Scala 3, functional, type-safe and memory-safe library to handle secret values
 
 `Secret` library does the best to avoid leaking information in memory and in the code BUT an attack is always possible and I don't give any certainties or
 guarantees about security using this library, you use it at your own risk. The code is open sourced, you can check the implementation and take your
@@ -16,61 +16,52 @@ decision consciously. I'll do my best to improve the security and the documentat
 
 Please, drop a ⭐️ if you are interested in this project and you want to support it.
 
+Scala 3 only, Scala 2 is not supported.
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.4"
+```
+
 ## Obfuscation
 
 By default the value is obfuscated when creating the `Secret` instance using the implicit `SecretStrategy` which, by default, transform the value into a xor-ed
-`ByteBuffer` witch store bytes outside the JVM using direct memory access.
+`ByteBuffer` which store bytes outside the JVM using direct memory access.
 
 The obfuscated value is de-obfuscated using the implicit `SecretStrategy` instance every time `use`, and derived method, are invoked which returns the original
 value converting the bytes back to `T` re-applying the xor formula.
 
 ## API and Type safety
 
-While obfuscating the value prevents or at least makes it harder to read the value from the memory, Secret class API are designed to avoid leaking
+While obfuscating the value prevents or at least makes it harder to read the value from the memory, `Secret` class API are designed to avoid leaking
 information in other ways. Preventing developers to improperly use the secret value ( logging, etc...).
 
 Example
 ```scala
-import com.geirolz.secret.Secret
+import com.geirolz.secret.*
 import scala.util.Try
 
 case class Database(password: String)
-def initDb(password: String): Database = Database(password)
 
-val secretString: Secret[String]  = Secret("my_password")
+val secretString: Secret[String]  = Secret("password")
 // secretString: Secret[String] = ** SECRET **
-val database: Try[Database]       = secretString.useAndDestroy[Try, Database](password => initDb(password))
-// database: Try[Database] = Success(
-//   value = Database(password = "my_password")
+val database: Either[SecretDestroyed, Database]       = secretString.useAndDestroyE(password => Database(password))
+// database: Either[SecretDestroyed, Database] = Right(
+//   value = Database(password = "password")
 // )
 
 // if you try to access the secret value once used, you'll get an error
 secretString.useE(println(_))
 // res1: Either[SecretDestroyed, Unit] = Left(
-//   value = SecretDestroyed(destroyedAt = README.md:28:111)
+//   value = SecretDestroyed(destroyedAt = README.md:25:119)
 // )
-```   
-
-## Getting Started
-
-To get started with Secret, follow these steps:
-
-1. **Installation:** Include the library as a dependency in your Scala project. You can find the latest version and
-   installation instructions in the [Secret GitHub repository](https://github.com/geirolz/secret).
-
-Scala3
-```sbt
-libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.2"
 ```
 
 ### Integrations
 
-These integrations aim to enhance the functionality and capabilities of your applications by leveraging the features and
-strengths of both Secret and the respective libraries.
+These integrations aim to enhance the functionality and capabilities of `Secret` type making it easier to use in different contexts.
 
 #### Cats Effect
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.2"
+libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.4"
 ```
 
 ```scala
@@ -82,14 +73,17 @@ val res: Resource[IO, String] = Secret("password").resource[IO]
 
 #### Pureconfig
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.2"
+libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.4"
 ```
+
+Just provides the `ConfigReader` instance for `Secret[T]` type.
+There must be an `ConfigReader[T]` and a `SecretStrategy[T]` instances implicitly in the scope.
 ```scala
 import com.geirolz.secret.pureconfig.given
 ```
 #### Typesafe Config
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.2"
+libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.4"
 ```
 ```scala
 import com.geirolz.secret.typesafe.config.given
@@ -97,7 +91,7 @@ import com.geirolz.secret.typesafe.config.given
 
 #### Ciris
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.2"
+libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.4"
 ```
 ```scala
 import com.geirolz.secret.ciris.given
@@ -140,16 +134,16 @@ import java.nio.ByteBuffer
 
 // build the custom algebra
 val myCustomAlgebra = new SecretStrategyAlgebra:
-   final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
-      Obfuscator.of { (plain: P) => KeyValueBuffer(ByteBuffer.allocateDirect(0), f(plain)) }
-   
-   final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
-      DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp8$$anon$6@5d45c1df
+final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
+   Obfuscator.of { (plain: P) => KeyValueBuffer(ByteBuffer.allocateDirect(0), f(plain)) }
+
+final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
+   DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp8$$anon$6@d448e97
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@7ed39e83
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@2729ee45
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope

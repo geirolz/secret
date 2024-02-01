@@ -16,50 +16,41 @@ decision consciously. I'll do my best to improve the security and the documentat
 
 Please, drop a ⭐️ if you are interested in this project and you want to support it.
 
+Scala 3 only, Scala 2 is not supported.
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret" % "@VERSION@"
+```
+
 ## Obfuscation
 
 By default the value is obfuscated when creating the `Secret` instance using the implicit `SecretStrategy` which, by default, transform the value into a xor-ed
-`ByteBuffer` witch store bytes outside the JVM using direct memory access.
+`ByteBuffer` which store bytes outside the JVM using direct memory access.
 
 The obfuscated value is de-obfuscated using the implicit `SecretStrategy` instance every time `use`, and derived method, are invoked which returns the original
 value converting the bytes back to `T` re-applying the xor formula.
 
 ## API and Type safety
 
-While obfuscating the value prevents or at least makes it harder to read the value from the memory, Secret class API are designed to avoid leaking
+While obfuscating the value prevents or at least makes it harder to read the value from the memory, `Secret` class API are designed to avoid leaking
 information in other ways. Preventing developers to improperly use the secret value ( logging, etc...).
 
 Example
 ```scala mdoc:reset
-import com.geirolz.secret.Secret
+import com.geirolz.secret.*
 import scala.util.Try
 
 case class Database(password: String)
-def initDb(password: String): Database = Database(password)
 
-val secretString: Secret[String]  = Secret("my_password")
-val database: Try[Database]       = secretString.useAndDestroy[Try, Database](password => initDb(password))
+val secretString: Secret[String]  = Secret("password")
+val database: Either[SecretDestroyed, Database]       = secretString.useAndDestroyE(password => Database(password))
 
 // if you try to access the secret value once used, you'll get an error
 secretString.useE(println(_))
-```   
-
-## Getting Started
-
-To get started with Secret, follow these steps:
-
-1. **Installation:** Include the library as a dependency in your Scala project. You can find the latest version and
-   installation instructions in the [Secret GitHub repository](https://github.com/geirolz/secret).
-
-Scala3
-```sbt
-libraryDependencies += "com.github.geirolz" %% "secret" % "@VERSION@"
 ```
 
 ### Integrations
 
-These integrations aim to enhance the functionality and capabilities of your applications by leveraging the features and
-strengths of both Secret and the respective libraries.
+These integrations aim to enhance the functionality and capabilities of `Secret` type making it easier to use in different contexts.
 
 #### Cats Effect
 ```sbt
@@ -77,6 +68,9 @@ val res: Resource[IO, String] = Secret("password").resource[IO]
 ```sbt
 libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "@VERSION@"
 ```
+
+Just provides the `ConfigReader` instance for `Secret[T]` type.
+There must be an `ConfigReader[T]` and a `SecretStrategy[T]` instances implicitly in the scope.
 ```scala mdoc:reset
 import com.geirolz.secret.pureconfig.given
 ```
