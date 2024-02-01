@@ -81,8 +81,9 @@ trait Secret[T] extends AutoCloseable:
     *
     * If the secret is destroyed it will raise a `NoLongerValidSecret` exception.
     *
-    * Throws `SecretNoLongerValid` if the secret is destroyed
+    * Throws `SecretNoLongerValid` if the secret has been already destroyed
     */
+  @throws[SecretDestroyed]("if the secret has been already destroyed")
   inline def unsafeUse[U](f: T => U): U =
     use[Either[SecretDestroyed, *], U](f).fold(throw _, identity)
 

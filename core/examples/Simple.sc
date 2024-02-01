@@ -5,3 +5,4 @@ s1.useE(secret => print(secret))
 s1.useAndDestroyE(secret => print(secret))
 s1.useE(secret => print(secret))
 
+s1.unsafeUse(print(_))
