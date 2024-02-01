@@ -1,6 +1,6 @@
 package com.geirolz.secret
 
-import cats.{Eq, Monoid, Show}
+import cats.{Eq, Functor, Monoid, Show}
 import com.geirolz.secret.Secret.*
 import com.geirolz.secret.internal.Location
 import com.geirolz.secret.strategy.SecretStrategy
@@ -80,14 +80,32 @@ trait Secret[T] extends AutoCloseable:
     * @return
     */
   private[secret] def duplicate[F[_]: MonadSecretError]: F[Secret[T]]
+  private[secret] inline def duplicateE: Either[SecretDestroyed, Secret[T]] =
+    duplicate[Either[SecretDestroyed, *]]
 
   // ------------------------------------------------------------------
+
+  /**
+   * Duplicate the secret and map the value using the specified function.
+   *
+   * If the secret were destroyed it will raise a `NoLongerValidSecret` when you try to use the new secret.
+   * */
+  final def map[U](f: T => U): Secret[U] =
+    SecretMap(this.duplicateE, f)
+
+  /**
+   * Duplicate the secret and flat map the value using the specified function.
+   *
+   * If the secret were destroyed it will raise a `NoLongerValidSecret` when you try to use the new secret.
+   */
+  final def flatMap[U](f: T => Secret[U]): Secret[U] =
+    SecretFlatMap(this.duplicateE, f)
 
   /** Directly access Secret value if not destroyed.
     *
     * The usage of this method is discouraged. Use `use*` instead.
     */
-  private[secret] inline def directAccess[F[_]: MonadSecretError]: F[T] =
+  private[secret] inline def accessValue[F[_]: MonadSecretError]: F[T] =
     use[F, T](identity)
 
   /** Avoid this method if possible. Unsafely apply `f` with the de-obfuscated value WITHOUT destroying it.
@@ -194,6 +212,38 @@ object Secret extends SecretSyntax, SecretInstances:
         if (isDestroyed) -1 else bufferTuple.obfuscatedHashCode
     }
 
+  private sealed transparent trait SecretDelegated[T, U](protected val duplicateFun: Secret[T] => Secret[U]) extends Secret[U]:
+    protected val underlying: Either[SecretDestroyed, Secret[T]]
+
+    override inline def evalUse[F[_]: MonadSecretError, V](f: U => F[V]): F[V] =
+      underlying match
+        case Right(s) => delegatedUse[F, V](s, f)
+        case Left(e)  => e.raiseError[F, V]
+
+    override private[secret] def duplicate[F[_]: MonadSecretError]: F[Secret[U]] =
+      summon[MonadSecretError[F]]
+        .fromEither(underlying)
+        .map(duplicateFun)
+
+    protected def delegatedUse[F[_]: MonadSecretError, V](s: Secret[T], f: U => F[V]): F[V]
+    override def destroy()(using location: Location): Unit = underlying.foreach(_.destroy())
+    override def isDestroyed: Boolean                      = underlying.forall(_.isDestroyed)
+    override def hashCode(): Int                           = underlying.map(_.hashCode()).getOrElse(-1)
+
+  private transparent class SecretMap[T, U](
+    protected val underlying: Either[SecretDestroyed, Secret[T]],
+    protected val mapF: T => U
+  ) extends SecretDelegated[T, U](duplicateFun = _.map(mapF)):
+    override protected def delegatedUse[F[_]: MonadSecretError, V](s: Secret[T], f: U => F[V]): F[V] =
+      s.evalUse(f.compose(mapF))
+
+  private transparent class SecretFlatMap[T, U](
+    protected val underlying: Either[SecretDestroyed, Secret[T]],
+    protected val mapF: T => Secret[U]
+  ) extends SecretDelegated[T, U](duplicateFun = _.flatMap(mapF)):
+    override protected def delegatedUse[F[_]: MonadSecretError, V](s: Secret[T], f: U => F[V]): F[V] =
+      s.evalUse(v => mapF(v).evalUse(f))
+
 private[secret] transparent sealed trait SecretSyntax:
 
   extension [T: SecretStrategy: Monoid](optSecret: Option[Secret[T]])
@@ -205,6 +255,10 @@ private[secret] transparent sealed trait SecretSyntax:
       eSecret.toOption.getOrEmptySecret
 
 private[secret] transparent sealed trait SecretInstances:
+
+  given Functor[Secret] = new Functor[Secret]:
+    override def map[A, B](fa: Secret[A])(f: A => B): Secret[B] =
+      fa.map(f)
 
   given [T]: Hashing[Secret[T]] =
     Hashing.fromFunction(_.hashCode())
