@@ -20,17 +20,6 @@ env:
 
 # jobs
 jobs:
-  scalafmt:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-        with:
-          fetch-depth: 1
-      - name: Checking your code to see if u r naughty or nice
-        uses: openlawteam/scalafmt-ci@v2
-        with:
-          args: "--exclude=third_party --list"
-
   build:
     name: build (${{ matrix.name }})
     runs-on: ubuntu-latest
@@ -40,7 +29,7 @@ jobs:
         include:
           - scala: 3.3.1
             name: Scala3_3
-            test-tasks: gen-doc coverage test coverageReport
+            test-tasks: scalafmtCheck gen-doc coverage test coverageReport
 
     steps:
       - uses: actions/checkout@v3
