@@ -12,7 +12,7 @@ import scala.util.{Failure, Try}
 class XorSecretSuite extends SecretSuite(using SecretStrategy.xorFactory)
 class PlainSecretSuite extends SecretSuite(using SecretStrategy.plainFactory)
 
-abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheckSuite {
+abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheckSuite:
 
   // numbers
   testSecretStrategyFor[Short]
@@ -199,4 +199,3 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
       }
     }
   }
-}

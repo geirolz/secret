@@ -1,6 +1,6 @@
 package com.geirolz.secret.internal
 
-class TestLocation extends munit.FunSuite {
+class TestLocation extends munit.FunSuite:
 
   test("Test Location") {
 
@@ -19,4 +19,3 @@ class TestLocation extends munit.FunSuite {
       expected = 45
     )
   }
-}

@@ -3,7 +3,7 @@ package com.geirolz.secret.utils
 import com.geirolz.secret.internal.BytesUtils
 import java.nio.ByteBuffer
 
-class BytesUtilsSuite extends munit.FunSuite {
+class BytesUtilsSuite extends munit.FunSuite:
 
   test("clearByteArray") {
     val bytes: Array[Byte] = Array[Byte](1, 2, 3, 4, 5)
@@ -27,4 +27,3 @@ class BytesUtilsSuite extends munit.FunSuite {
 
     assertEquals(array.toList, List[Byte](0, 0, 0, 0, 0))
   }
-}
