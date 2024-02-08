@@ -169,26 +169,17 @@ lazy val baseSettings: Seq[Def.Setting[_]] = Seq(
 def scalacSettings(scalaVersion: String): Seq[String] =
   Seq(
     "-explain",
-    //    "-deprecation", // Emit warning and location for usages of deprecated APIs.
     "-encoding",
     "utf-8", // Specify character encoding used by source files.
     "-feature", // Emit warning and location for usages of features that should be imported explicitly.
     "-language:existentials", // Existential types (besides wildcard types) can be written and inferred
-    //    "-language:experimental.macros", // Allow macro definition (besides implementation and application)
     "-language:higherKinds", // Allow higher-kinded types
     "-language:implicitConversions", // Allow definition of implicit functions called views
-    "-language:dynamics"
-  ) ++ {
-    CrossVersion.partialVersion(scalaVersion) match {
-      case Some((3, _)) =>
-        Seq(
-          "-Ykind-projector",
-          "-explain-types", // Explain type errors in more detail.
-          "-Xfatal-warnings" // Fail the compilation if there are any warnings.
-        )
-      case _ => Nil
-    }
-  }
+    "-language:dynamics",
+    "-Ykind-projector",
+    "-explain-types", // Explain type errors in more detail.
+    "-Xfatal-warnings" // Fail the compilation if there are any warnings.
+  )
 
 //=============================== ALIASES ===============================
 addCommandAlias("check", "scalafmtAll;clean;coverage;test;coverageAggregate")
