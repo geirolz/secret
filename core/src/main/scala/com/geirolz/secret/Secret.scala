@@ -1,6 +1,6 @@
 package com.geirolz.secret
 
-import cats.{Eq, Functor, Monoid, Show}
+import cats.{Eq, Functor, MonadThrow, Monoid, Show}
 import com.geirolz.secret.Secret.*
 import com.geirolz.secret.internal.Location
 import com.geirolz.secret.strategy.SecretStrategy
@@ -178,11 +178,23 @@ object Secret extends SecretSyntax, SecretInstances:
   final val empty: Secret[String] = plain("")
 
   def plain(value: String): Secret[String] =
-    SecretStrategy.plainFactory {
-      Secret(value)
-    }
+    SecretStrategy.plainFactory { Secret(value) }
 
-  def apply[T](value: T)(using strategy: SecretStrategy[T]): Secret[T] =
+  def fromEnv(name: String)(using SysEnv[Try], SecretStrategy[String]): Option[Secret[String]] =
+    SysEnv[Try].getEnv(name).toOption.flatten.map(Secret(_))
+
+  def deferredFromEnv[F[_]: MonadThrow](name: String)(using SecretStrategy[String]): DeferredSecret[F, String] =
+    DeferredSecret.fromSecret(
+      MonadThrow[F].fromOption(
+        oa      = Secret.fromEnv(name),
+        ifEmpty = new NoSuchElementException(s"Missing environment variable [$name]")
+      )
+    )
+
+  def deferred[F[_]: MonadSecretError, T: SecretStrategy](acquire: F[T]): DeferredSecret[F, T] =
+    DeferredSecret(acquire)
+
+  def apply[T](value: => T)(using strategy: SecretStrategy[T]): Secret[T] =
     new Secret[T] {
 
       private var bufferTuple: KeyValueBuffer | Null   = strategy.obfuscator(value)

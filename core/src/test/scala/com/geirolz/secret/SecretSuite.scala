@@ -43,6 +43,31 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
     println(s1.useAndDestroyE(_ => ()))
   }
 
+  test("Secret.fromEnv") {
+    given SysEnv[Try] = SysEnv.fromMap[Try](Map("TEST" -> "VALUE"))
+    Secret
+      .fromEnv("TEST")
+      .get
+      .useAndDestroyE(value =>
+        assertEquals(
+          obtained = value,
+          expected = "VALUE"
+        )
+      )
+  }
+
+  test("Secret.deferredFromEnv") {
+    given SysEnv[Try] = SysEnv.fromMap[Try](Map("TEST" -> "VALUE"))
+    Secret
+      .deferredFromEnv[Try]("TEST")
+      .use(value =>
+        assertEquals(
+          obtained = value,
+          expected = "VALUE"
+        )
+      )
+  }
+
   test("Option Secret getOrEmptySecret") {
 
     // some
