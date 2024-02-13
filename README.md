@@ -10,9 +10,9 @@
 
 A Scala 3, functional, type-safe and memory-safe library to handle secret values
 
-`Secret` library does the best to avoid leaking information in memory and in the code BUT an attack is always possible and I don't give any certainties or
-guarantees about security using this library, you use it at your own risk. The code is open sourced, you can check the implementation and take your
-decision consciously. I'll do my best to improve the security and the documentation of this project.
+`Secret` library does its best to avoid leaking information in memory and in the code, BUT an attack is always possible, 
+and I don't give any certainties or guarantees about security by using this library, you use it at your own risk. The code is open-sourced; you can check the implementation and take your
+decision consciously. I'll do my best to improve the security and documentation of this project.
 
 Please, drop a ⭐️ if you are interested in this project and you want to support it.
 
