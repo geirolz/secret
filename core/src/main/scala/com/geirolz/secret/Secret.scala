@@ -1,6 +1,6 @@
 package com.geirolz.secret
 
-import cats.{Eq, Functor, MonadThrow, Monoid, Show}
+import cats.{Eq, Functor, MonadError, MonadThrow, Monoid, Show}
 import com.geirolz.secret.Secret.*
 import com.geirolz.secret.internal.Location
 import com.geirolz.secret.strategy.SecretStrategy
@@ -174,25 +174,19 @@ trait Secret[T] extends AutoCloseable:
 object Secret extends SecretSyntax, SecretInstances:
 
   import cats.syntax.all.given
+  export DeferredSecret.apply as defer
+  export DeferredSecret.fromEnv as deferFromEnv
 
   final val empty: Secret[String] = plain("")
 
   def plain(value: String): Secret[String] =
     SecretStrategy.plainFactory { Secret(value) }
 
-  def fromEnv(name: String)(using SysEnv[Try], SecretStrategy[String]): Option[Secret[String]] =
-    SysEnv[Try].getEnv(name).toOption.flatten.map(Secret(_))
-
-  def deferFromEnv[F[_]: MonadThrow](name: String)(using SecretStrategy[String]): DeferredSecret[F, String] =
-    DeferredSecret.fromSecret(
-      MonadThrow[F].fromOption(
-        oa      = Secret.fromEnv(name),
-        ifEmpty = new NoSuchElementException(s"Missing environment variable [$name]")
-      )
-    )
-
-  def defer[F[_]: MonadThrow, T: SecretStrategy](acquire: => F[T]): DeferredSecret[F, T] =
-    DeferredSecret(acquire)
+  def fromEnv[F[_]: MonadThrow: SysEnv](name: String)(using SecretStrategy[String]): F[Secret[String]] =
+    SysEnv[F]
+      .getEnv(name)
+      .flatMap(_.liftTo[F](new NoSuchElementException(s"Missing environment variable [$name]")))
+      .map(Secret(_))
 
   def apply[T](value: => T)(using strategy: SecretStrategy[T]): Secret[T] =
     new Secret[T] {

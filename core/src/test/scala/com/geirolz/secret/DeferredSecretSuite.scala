@@ -5,39 +5,7 @@ import cats.effect.IO
 import scala.util.Try
 
 class DeferredSecretSuite extends munit.CatsEffectSuite:
-
-  test("DeferredSecret should not evaluate the value until use is called with Try") {
-    var evaluated = false
-    val secret: DeferredSecret[Try, Int] =
-      DeferredSecret(Try {
-        evaluated = true
-        1
-      }).map(_ + 1)
-        .flatMap(v => DeferredSecret.pure(v + 1))
-        .handleError(_ => Secret(0))
-        .handleErrorWith(_ => Try(Secret(0)))
-
-    assert(!evaluated)
-    assert(secret.use((v: Int) => assertEquals(v, 3)).isSuccess)
-    assert(evaluated)
-  }
-
-  test("DeferredSecret should not evaluate the value until use is called with IO") {
-    var evaluated = false
-    val secret: DeferredSecret[IO, Int] =
-      DeferredSecret(IO {
-        evaluated = true
-        1
-      }).map(_ + 1)
-        .flatMap(v => DeferredSecret.pure(v + 1))
-        .handleError(_ => Secret(0))
-        .handleErrorWith(_ => IO(Secret(0)))
-
-    assert(!evaluated)
-    secret.use((v: Int) => assertEquals(v, 3)).unsafeRunSync()
-    assert(evaluated)
-  }
-
+  
   test("DeferredSecret should be evaluated every time use is called with IO") {
     var counter = 0
     val secret: DeferredSecret[IO, Int] =

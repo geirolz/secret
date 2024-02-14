@@ -61,6 +61,10 @@ object DeferredSecret:
   def failed[F[_]: MonadThrow, T](e: Throwable): DeferredSecret[F, T] =
     DeferredSecret.fromSecret(MonadThrow[F].raiseError(e))
 
+  /** Create a DeferredSecret that reads the specified environment variable every time it is used. */
+  def fromEnv[F[_]: MonadThrow](name: String)(using SecretStrategy[String]): DeferredSecret[F, String] =
+    DeferredSecret.fromSecret(Secret.fromEnv[F](name))
+
   /** Create a DeferredSecret from a Secret.
     *
     * The acquire function is called every time you use the DeferredSecret.
