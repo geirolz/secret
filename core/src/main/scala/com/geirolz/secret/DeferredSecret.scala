@@ -1,6 +1,6 @@
 package com.geirolz.secret
 
-import cats.Functor
+import cats.{Functor, MonadThrow}
 import cats.syntax.all.*
 import com.geirolz.secret.internal.Location
 import com.geirolz.secret.strategy.SecretStrategy
@@ -38,27 +38,45 @@ sealed trait DeferredSecret[F[_], T]:
   /** FlatMap the secret value to `U` */
   def flatMap[U](f: T => DeferredSecret[F, U]): DeferredSecret[F, U]
 
+  /** Handle the error of the acquisition of the secret value */
+  def handleError(f: Throwable => Secret[T]): DeferredSecret[F, T]
+
+  /** Handle the error of the acquisition of the secret value */
+  def handleErrorWith(f: Throwable => F[Secret[T]]): DeferredSecret[F, T]
+
 object DeferredSecret:
 
-  def apply[F[_]: MonadSecretError, T: SecretStrategy](acquire: F[T]): DeferredSecret[F, T] =
+  def apply[F[_]: MonadThrow, T: SecretStrategy](acquire: F[T]): DeferredSecret[F, T] =
     DeferredSecret.fromSecret[F, T](acquire.map(Secret(_)))
 
-  def fromSecret[F[_]: MonadSecretError, T](_acquire: F[Secret[T]]): DeferredSecret[F, T] =
+  def pure[F[_]: MonadThrow, T: SecretStrategy](t: T): DeferredSecret[F, T] =
+    DeferredSecret(t.pure[F])
+
+  def failed[F[_]: MonadThrow](e: Throwable): DeferredSecret[F, Nothing] =
+    DeferredSecret.fromSecret(MonadThrow[F].raiseError(e))
+
+  def fromSecret[F[_]: MonadThrow, T](_acquire: F[Secret[T]]): DeferredSecret[F, T] =
     new DeferredSecret[F, T]:
 
       private[DeferredSecret] val acquire = _acquire
 
-      def use[U](f: T => U): F[U] =
+      override def use[U](f: T => U): F[U] =
         acquire.flatMap(_.useAndDestroy(f))
 
-      def evalUse[U](f: T => F[U]): F[U] =
+      override def evalUse[U](f: T => F[U]): F[U] =
         acquire.flatMap(_.evalUseAndDestroy(f))
 
-      def map[U](f: T => U): DeferredSecret[F, U] =
+      override def map[U](f: T => U): DeferredSecret[F, U] =
         DeferredSecret.fromSecret(acquire.map(_.map(f)))
 
-      def flatMap[U](f: T => DeferredSecret[F, U]): DeferredSecret[F, U] =
+      override def flatMap[U](f: T => DeferredSecret[F, U]): DeferredSecret[F, U] =
         DeferredSecret.fromSecret(evalUse(f(_).acquire))
+
+      override def handleError(f: Throwable => Secret[T]): DeferredSecret[F, T] =
+        handleErrorWith(f.andThen(_.pure[F]))
+
+      override def handleErrorWith(f: Throwable => F[Secret[T]]): DeferredSecret[F, T] =
+        DeferredSecret.fromSecret(acquire.handleErrorWith(f))
 
 private[secret] sealed trait DeferredSecretInstances:
 

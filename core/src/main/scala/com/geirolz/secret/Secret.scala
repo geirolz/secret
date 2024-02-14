@@ -191,7 +191,7 @@ object Secret extends SecretSyntax, SecretInstances:
       )
     )
 
-  def deferred[F[_]: MonadSecretError, T: SecretStrategy](acquire: F[T]): DeferredSecret[F, T] =
+  def deferred[F[_]: MonadThrow, T: SecretStrategy](acquire: F[T]): DeferredSecret[F, T] =
     DeferredSecret(acquire)
 
   def apply[T](value: => T)(using strategy: SecretStrategy[T]): Secret[T] =
