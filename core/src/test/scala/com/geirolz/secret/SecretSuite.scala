@@ -46,7 +46,7 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
   test("Secret.fromEnv") {
     given SysEnv[Try] = SysEnv.fromMap[Try](Map("TEST" -> "VALUE"))
     Secret
-      .fromEnv("TEST")
+      .fromEnv[Try]("TEST")
       .get
       .useAndDestroyE(value =>
         assertEquals(
