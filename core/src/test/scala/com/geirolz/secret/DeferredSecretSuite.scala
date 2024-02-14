@@ -5,7 +5,7 @@ import cats.effect.IO
 import scala.util.Try
 
 class DeferredSecretSuite extends munit.CatsEffectSuite:
-  
+
   test("DeferredSecret should be evaluated every time use is called with IO") {
     var counter = 0
     val secret: DeferredSecret[IO, Int] =
