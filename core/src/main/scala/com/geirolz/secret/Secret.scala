@@ -183,7 +183,7 @@ object Secret extends SecretSyntax, SecretInstances:
   def fromEnv(name: String)(using SysEnv[Try], SecretStrategy[String]): Option[Secret[String]] =
     SysEnv[Try].getEnv(name).toOption.flatten.map(Secret(_))
 
-  def deferredFromEnv[F[_]: MonadThrow](name: String)(using SecretStrategy[String]): DeferredSecret[F, String] =
+  def deferFromEnv[F[_]: MonadThrow](name: String)(using SecretStrategy[String]): DeferredSecret[F, String] =
     DeferredSecret.fromSecret(
       MonadThrow[F].fromOption(
         oa      = Secret.fromEnv(name),
@@ -191,7 +191,7 @@ object Secret extends SecretSyntax, SecretInstances:
       )
     )
 
-  def deferred[F[_]: MonadThrow, T: SecretStrategy](acquire: F[T]): DeferredSecret[F, T] =
+  def defer[F[_]: MonadThrow, T: SecretStrategy](acquire: => F[T]): DeferredSecret[F, T] =
     DeferredSecret(acquire)
 
   def apply[T](value: => T)(using strategy: SecretStrategy[T]): Secret[T] =

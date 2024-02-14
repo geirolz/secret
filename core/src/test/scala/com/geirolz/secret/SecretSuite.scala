@@ -59,7 +59,7 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
   test("Secret.deferredFromEnv") {
     given SysEnv[Try] = SysEnv.fromMap[Try](Map("TEST" -> "VALUE"))
     Secret
-      .deferredFromEnv[Try]("TEST")
+      .deferFromEnv[Try]("TEST")
       .use(value =>
         assertEquals(
           obtained = value,

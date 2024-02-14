@@ -1,6 +1,6 @@
 package com.geirolz.secret
 
-import cats.{Functor, MonadThrow}
+import cats.{Eval, Functor, MonadThrow}
 import cats.syntax.all.*
 import com.geirolz.secret.internal.Location
 import com.geirolz.secret.strategy.SecretStrategy
@@ -18,7 +18,7 @@ import com.geirolz.secret.strategy.SecretStrategy
   *   secret type
   */
 sealed trait DeferredSecret[F[_], T]:
-  private[DeferredSecret] val acquire: F[Secret[T]]
+  private[DeferredSecret] def acquire: F[Secret[T]]
 
   /** This method acquire the Secret value every time and once used destroy the secret. It doesn't has the suffix
     * "AndDestroy" because it's the default behavior of the DeferredSecret which could be called any number of times
@@ -46,19 +46,29 @@ sealed trait DeferredSecret[F[_], T]:
 
 object DeferredSecret:
 
-  def apply[F[_]: MonadThrow, T: SecretStrategy](acquire: F[T]): DeferredSecret[F, T] =
+  /** Create a DeferredSecret from a `F[T]`.
+    *
+    * The function is called every time the DeferredSecret is used.
+    */
+  def apply[F[_]: MonadThrow, T: SecretStrategy](acquire: => F[T]): DeferredSecret[F, T] =
     DeferredSecret.fromSecret[F, T](acquire.map(Secret(_)))
 
+  /** Create a pure and constant DeferredSecret */
   def pure[F[_]: MonadThrow, T: SecretStrategy](t: T): DeferredSecret[F, T] =
     DeferredSecret(t.pure[F])
 
-  def failed[F[_]: MonadThrow](e: Throwable): DeferredSecret[F, Nothing] =
+  /** Create a failed DeferredSecret which always fails with the specified error */
+  def failed[F[_]: MonadThrow, T](e: Throwable): DeferredSecret[F, T] =
     DeferredSecret.fromSecret(MonadThrow[F].raiseError(e))
 
-  def fromSecret[F[_]: MonadThrow, T](_acquire: F[Secret[T]]): DeferredSecret[F, T] =
+  /** Create a DeferredSecret from a Secret.
+    *
+    * The acquire function is called every time you use the DeferredSecret.
+    */
+  def fromSecret[F[_]: MonadThrow, T](_acquire: => F[Secret[T]]): DeferredSecret[F, T] =
     new DeferredSecret[F, T]:
 
-      private[DeferredSecret] val acquire = _acquire
+      private[DeferredSecret] def acquire = _acquire
 
       override def use[U](f: T => U): F[U] =
         acquire.flatMap(_.useAndDestroy(f))

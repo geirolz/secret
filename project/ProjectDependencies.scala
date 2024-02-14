@@ -20,9 +20,11 @@ object ProjectDependencies {
     "org.typelevel" %% "cats-core" % catsVersion,
 
     // test
-    "org.scalameta"  %% "munit"            % munitVersion % Test,
-    "org.scalameta"  %% "munit-scalacheck" % munitVersion % Test,
-    "org.scalacheck" %% "scalacheck"       % scalacheck   % Test
+    "org.typelevel"  %% "cats-effect"         % catsEffectVersion  % Test,
+    "org.typelevel"  %% "munit-cats-effect-3" % munitEffectVersion % Test,
+    "org.scalameta"  %% "munit"               % munitVersion       % Test,
+    "org.scalameta"  %% "munit-scalacheck"    % munitVersion       % Test,
+    "org.scalacheck" %% "scalacheck"          % scalacheck         % Test
   )
 
   object Core {
