@@ -2,6 +2,7 @@ package com.geirolz.secret
 
 import cats.Eq
 import com.geirolz.secret.strategy.{SecretStrategy, SecretStrategyFactory}
+import com.geirolz.secret.util.SysEnv
 import org.scalacheck.Arbitrary
 import org.scalacheck.Prop.forAll
 
@@ -166,12 +167,12 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
         val s1 = Secret(value)
         val s2 = Secret(value)
 
-        assert(s1.isEquals(s2))
+        assert(s1.isValueEquals(s2))
         s1.destroy()
-        assert(!s1.isEquals(s2))
-        assert(!s2.isEquals(s1))
+        assert(!s1.isValueEquals(s2))
+        assert(!s2.isValueEquals(s1))
         s2.destroy()
-        assert(!s1.isEquals(s2))
+        assert(!s1.isValueEquals(s2))
       }
     }
 

@@ -2,7 +2,7 @@ package com.geirolz.secret
 
 import cats.{Eval, Functor, MonadThrow}
 import cats.syntax.all.*
-import com.geirolz.secret.internal.Location
+import com.geirolz.secret.util.{Hasher, Location}
 import com.geirolz.secret.strategy.SecretStrategy
 
 /** Specialized version of `Secret` that allows to defer the acquisition of the secret value. This is useful when you
@@ -50,11 +50,11 @@ object DeferredSecret:
     *
     * The function is called every time the DeferredSecret is used.
     */
-  def apply[F[_]: MonadThrow, T: SecretStrategy](acquire: => F[T]): DeferredSecret[F, T] =
+  def apply[F[_]: MonadThrow, T: SecretStrategy](acquire: => F[T])(using Hasher): DeferredSecret[F, T] =
     DeferredSecret.fromSecret[F, T](acquire.map(Secret(_)))
 
   /** Create a pure and constant DeferredSecret */
-  def pure[F[_]: MonadThrow, T: SecretStrategy](t: T): DeferredSecret[F, T] =
+  def pure[F[_]: MonadThrow, T: SecretStrategy](t: T)(using Hasher): DeferredSecret[F, T] =
     DeferredSecret(t.pure[F])
 
   /** Create a failed DeferredSecret which always fails with the specified error */
@@ -62,7 +62,7 @@ object DeferredSecret:
     DeferredSecret.fromSecret(MonadThrow[F].raiseError(e))
 
   /** Create a DeferredSecret that reads the specified environment variable every time it is used. */
-  def fromEnv[F[_]: MonadThrow](name: String)(using SecretStrategy[String]): DeferredSecret[F, String] =
+  def fromEnv[F[_]: MonadThrow](name: String)(using SecretStrategy[String], Hasher): DeferredSecret[F, String] =
     DeferredSecret.fromSecret(Secret.fromEnv[F](name))
 
   /** Create a DeferredSecret from a Secret.

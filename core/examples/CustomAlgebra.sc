@@ -1,6 +1,7 @@
 import com.geirolz.secret.strategy.SecretStrategy.{DeObfuscator, Obfuscator}
 import com.geirolz.secret.strategy.{SecretStrategy, SecretStrategyAlgebra}
-import com.geirolz.secret.{KeyValueBuffer, PlainValueBuffer, Secret}
+import com.geirolz.secret.util.KeyValueBuffer
+import com.geirolz.secret.{PlainValueBuffer, Secret}
 
 import java.nio.ByteBuffer
 

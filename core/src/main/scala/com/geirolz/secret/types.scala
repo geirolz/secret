@@ -1,7 +1,7 @@
 package com.geirolz.secret
 
 import cats.{MonadError, Show}
-import com.geirolz.secret.internal.Location
+import com.geirolz.secret.util.Location
 
 import java.nio.ByteBuffer
 import scala.util.control.NoStackTrace

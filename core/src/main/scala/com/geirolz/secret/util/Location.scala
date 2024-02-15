@@ -1,4 +1,4 @@
-package com.geirolz.secret.internal
+package com.geirolz.secret.util
 
 import cats.Show
 
