@@ -165,7 +165,7 @@ trait Secret[T] extends AutoCloseable:
     * @return
     *   `true` if the secrets are equal, `false` if they are not equal or if one of the secret is destroyed
     */
-  inline def isValueEquals(that: Secret[T])(using Eq[T]): Boolean =
+  inline def isEquals(that: Secret[T])(using Eq[T]): Boolean =
     evalUse[Try, Boolean](thisValue => that.use[Try, Boolean](_ === thisValue)).getOrElse(false)
 
   /** Safely compare the hashed value of this secret with the provided `Secret`. */
