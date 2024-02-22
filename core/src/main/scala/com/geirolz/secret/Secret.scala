@@ -75,11 +75,6 @@ trait Secret[T] extends AutoCloseable:
     */
   def hashed: String
 
-  /** @return
-    *   a short hashed representation of the secret value
-    */
-  def shortHashed: String
-
   /** Create another Secret with the same value if this has not been destroyed.
     * @return
     */
@@ -161,15 +156,8 @@ trait Secret[T] extends AutoCloseable:
     * @return
     *   `true` if the secrets are equal, `false` if they are not equal or if one of the secret is destroyed
     */
-  inline def isValueEquals(that: Secret[T])(using Eq[T]): Boolean =
+  inline def isEquals(that: Secret[T])(using Eq[T]): Boolean =
     evalUse[Try, Boolean](thisValue => that.use[Try, Boolean](_ === thisValue)).getOrElse(false)
-
-  /** Check if `that` is equals to `this` comparing the hashed value.
-    *
-    * Return false if one of these is destroyed
-    */
-  inline def isEquals(that: Secret[T]): Boolean =
-    !this.isDestroyed && !that.isDestroyed && this.hashed == that.hashed
 
   /** Check if `that` a Secret and it's equals to `this` comparing the hashed value.
     *
@@ -177,8 +165,10 @@ trait Secret[T] extends AutoCloseable:
     */
   inline override def equals(obj: Any): Boolean =
     obj match
-      case that: Secret[?] => Try(this.isEquals(that.asInstanceOf[Secret[T]])).getOrElse(false)
-      case _               => false
+      case that: Secret[?] =>
+        given Eq[T] = Eq.fromUniversalEquals
+        Try(this.isEquals(that.asInstanceOf[Secret[T]])).getOrElse(false)
+      case _ => false
 
   /** Alias for `destroy` */
   inline override def close(): Unit = destroy()
@@ -209,7 +199,7 @@ object Secret extends SecretSyntax, SecretInstances:
 
   def apply[T](value: => T)(using strategy: SecretStrategy[T], hasher: Hasher): Secret[T] =
     var bufferTuple: KeyValueBuffer | Null = strategy.obfuscator(value)
-    var hashedValue: ByteBuffer | Null     = hasher.hash(value.toString.toCharArray)
+    var hashedValue: ByteBuffer | Null     = hasher.hash(value.toString.toCharArray, 12)
     var hashcode: Int | Null               = hashedValue.hashCode()
 
     // do not use value inside the secret to avoid closure
@@ -247,12 +237,6 @@ object Secret extends SecretSyntax, SecretInstances:
           destroyedTag
         else
           BytesUtils.asString(hashedValue)
-
-      override final def shortHashed: String =
-        if (isDestroyed)
-          destroyedTag
-        else
-          BytesUtils.asString(hashedValue, 15)
     }
 
   private sealed transparent trait SecretDelegated[T, U](
@@ -279,8 +263,6 @@ object Secret extends SecretSyntax, SecretInstances:
       underlying.map(_.hashCode()).getOrElse(-1)
     override final def hashed: String =
       underlying.map(_.hashed).getOrElse(destroyedTag)
-    override final def shortHashed: String =
-      underlying.map(_.shortHashed).getOrElse(destroyedTag)
 
   private class SecretMap[T, U](
     protected val underlying: Either[SecretDestroyed, Secret[T]],
