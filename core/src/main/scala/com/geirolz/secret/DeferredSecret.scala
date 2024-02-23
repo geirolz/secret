@@ -18,6 +18,8 @@ import com.geirolz.secret.strategy.SecretStrategy
   *   secret type
   */
 sealed trait DeferredSecret[F[_], T]:
+
+  /** Acquire the secret value. This method is called every time you use the DeferredSecret. */
   private[DeferredSecret] def acquire: F[Secret[T]]
 
   /** This method acquire the Secret value every time and once used destroy the secret. It doesn't has the suffix
@@ -33,10 +35,10 @@ sealed trait DeferredSecret[F[_], T]:
   def evalUse[U](f: T => F[U]): F[U]
 
   /** Map the secret value to `U` */
-  def map[U](f: T => U): DeferredSecret[F, U]
+  def map[U: SecretStrategy](f: T => U)(using Hasher): DeferredSecret[F, U]
 
   /** FlatMap the secret value to `U` */
-  def flatMap[U](f: T => DeferredSecret[F, U]): DeferredSecret[F, U]
+  def flatMap[U: SecretStrategy](f: T => DeferredSecret[F, U])(using Hasher): DeferredSecret[F, U]
 
   /** Handle the error of the acquisition of the secret value */
   def handleError(f: Throwable => Secret[T]): DeferredSecret[F, T]
@@ -80,10 +82,10 @@ object DeferredSecret:
       override def evalUse[U](f: T => F[U]): F[U] =
         acquire.flatMap(_.evalUseAndDestroy(f))
 
-      override def map[U](f: T => U): DeferredSecret[F, U] =
+      override def map[U: SecretStrategy](f: T => U)(using Hasher): DeferredSecret[F, U] =
         DeferredSecret.fromSecret(acquire.map(_.map(f)))
 
-      override def flatMap[U](f: T => DeferredSecret[F, U]): DeferredSecret[F, U] =
+      override def flatMap[U: SecretStrategy](f: T => DeferredSecret[F, U])(using Hasher): DeferredSecret[F, U] =
         DeferredSecret.fromSecret(evalUse(f(_).acquire))
 
       override def handleError(f: Throwable => Secret[T]): DeferredSecret[F, T] =
@@ -91,8 +93,3 @@ object DeferredSecret:
 
       override def handleErrorWith(f: Throwable => F[Secret[T]]): DeferredSecret[F, T] =
         DeferredSecret.fromSecret(acquire.handleErrorWith(f))
-
-private[secret] sealed trait DeferredSecretInstances:
-
-  given [F[_]]: Functor[DeferredSecret[F, *]] with
-    def map[A, B](fa: DeferredSecret[F, A])(f: A => B): DeferredSecret[F, B] = fa.map(f)

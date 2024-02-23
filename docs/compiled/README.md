@@ -111,9 +111,11 @@ import com.geirolz.secret.strategy.SecretStrategy
 import com.geirolz.secret.strategy.SecretStrategy.{DeObfuscator, Obfuscator}
 import com.geirolz.secret.{KeyValueBuffer, Secret}
 
-given SecretStrategy[String] = SecretStrategy[String](
-   Obfuscator.of[String](_ => KeyValueBuffer.directEmpty(0)),
-   DeObfuscator.of[String](_ => "CUSTOM"),
+given SecretStrategy
+[String
+] = SecretStrategy[String](
+  Obfuscator.of[String](_ => KeyValueBuffer.directEmpty(0)),
+  DeObfuscator.of[String](_ => "CUSTOM"),
 )
 
 Secret("my_password").useE(secret => secret)
@@ -134,11 +136,11 @@ import java.nio.ByteBuffer
 
 // build the custom algebra
 val myCustomAlgebra = new SecretStrategyAlgebra:
-   final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
-      Obfuscator.of { (plain: P) => KeyValueBuffer(ByteBuffer.allocateDirect(0), f(plain)) }
-   
-   final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
-      DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
+final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
+  Obfuscator.of { (plain: P) => KeyValueBuffer(ByteBuffer.allocateDirect(0), f(plain)) }
+
+final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
+  DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
 // myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp8$$anon$6@d448e97
 
 // build factory based on the algebra
@@ -147,13 +149,15 @@ val myCustomStrategyFactory = myCustomAlgebra.newFactory
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope
+
 import myCustomStrategyFactory.given
+
 Secret("my_password").useE(secret => secret)
 // res9: Either[SecretDestroyed, String] = Right(value = "my_password")
 
 // or restricted to a specific scope
 myCustomStrategyFactory {
-   Secret("my_password").useE(secret => secret)
+  Secret("my_password").useE(secret => secret)
 }
 // res10: Either[SecretDestroyed, String] = Right(value = "my_password")
 ```

@@ -15,6 +15,8 @@ class Location(
 
 object Location:
 
+  val unknown: Location = new Location("unknown", 0, 0, None)
+
   inline given Location = ${ currentLocationMacro }
   private def currentLocationMacro(using Quotes): Expr[Location] =
     val position                         = quotes.reflect.Position.ofMacroExpansion
