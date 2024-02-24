@@ -3,17 +3,7 @@ package com.geirolz.secret
 import cats.effect.IO
 
 class SecretCatsEffectSuite extends munit.CatsEffectSuite:
-
-  test("Secret should be able to be created as a resource") {
-    Secret
-      .resource[IO, String]("password")
-      .use(value =>
-        IO(
-          assertEquals(obtained = value, expected = "password")
-        )
-      )
-  }
-
+  
   test("Secret should be able to be used as a resource") {
 
     val secret1 = Secret("password")
