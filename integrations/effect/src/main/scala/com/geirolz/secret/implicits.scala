@@ -4,10 +4,10 @@ import cats.effect.{Async, IO, Resource}
 
 // secret
 extension [T](secret: Secret[T])
-  
+
   inline def resource[F[_]: Async]: Resource[F, T] =
     IO.fromFuture(???)
-    
+
     Resource
       .fromAutoCloseable(Async[F].defer(Async[F].delay(secret.duplicate)))
       .evalMap(_.accessValue[F])
