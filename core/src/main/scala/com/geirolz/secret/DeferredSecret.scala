@@ -20,7 +20,7 @@ import com.geirolz.secret.strategy.SecretStrategy
 sealed trait DeferredSecret[F[_], T]:
 
   /** Acquire the secret value. This method is called every time you use the DeferredSecret. */
-  private[DeferredSecret] def acquire: F[Secret[T]]
+  private[secret] def acquire: F[Secret[T]]
 
   /** This method acquire the Secret value every time and once used destroy the secret. It doesn't has the suffix
     * "AndDestroy" because it's the default behavior of the DeferredSecret which could be called any number of times
@@ -74,7 +74,7 @@ object DeferredSecret:
   def fromSecret[F[_]: MonadThrow, T](_acquire: => F[Secret[T]]): DeferredSecret[F, T] =
     new DeferredSecret[F, T]:
 
-      private[DeferredSecret] def acquire = _acquire
+      private[secret] def acquire = _acquire
 
       override def use[U](f: T => U): F[U] =
         acquire.flatMap(_.useAndDestroy(f))

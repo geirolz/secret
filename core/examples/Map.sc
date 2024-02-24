@@ -10,3 +10,9 @@ s3.useAndDestroyE(println(_))
 s1.isDestroyed
 s2.isDestroyed
 s3.isDestroyed
+
+
+
+val s4: Secret[String] = s1.mapAndDestroy(_ + "B")
+s1.isDestroyed
+s4.isDestroyed
