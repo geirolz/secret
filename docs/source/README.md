@@ -42,7 +42,7 @@ import scala.util.Try
 case class Database(password: String)
 
 val secretString: Secret[String]  = Secret("password")
-val database: Either[SecretDestroyed, Database]       = secretString.useAndDestroyE(password => Database(password))
+val database: Either[SecretDestroyed, Database] = secretString.useAndDestroyE(password => Database(password))
 
 // if you try to access the secret value once used, you'll get an error
 secretString.useE(println(_))
@@ -102,11 +102,10 @@ If you think that your strategy can be useful for other people, please consider 
 ```scala mdoc:reset
 import com.geirolz.secret.strategy.SecretStrategy
 import com.geirolz.secret.strategy.SecretStrategy.{DeObfuscator, Obfuscator}
-import com.geirolz.secret.{KeyValueBuffer, Secret}
+import com.geirolz.secret.util.KeyValueBuffer
+import com.geirolz.secret.Secret
 
-given SecretStrategy
-[String
-] = SecretStrategy[String](
+given SecretStrategy[String] = SecretStrategy[String](
   Obfuscator.of[String](_ => KeyValueBuffer.directEmpty(0)),
   DeObfuscator.of[String](_ => "CUSTOM"),
 )
@@ -122,17 +121,18 @@ If you think that your strategy can be useful for other people, please consider 
 ```scala mdoc:reset
 import com.geirolz.secret.strategy.SecretStrategy.{DeObfuscator, Obfuscator}
 import com.geirolz.secret.strategy.{SecretStrategy, SecretStrategyAlgebra}
-import com.geirolz.secret.{KeyValueBuffer, PlainValueBuffer, Secret}
+import com.geirolz.secret.util.KeyValueBuffer
+import com.geirolz.secret.{PlainValueBuffer, Secret}
 
 import java.nio.ByteBuffer
 
 // build the custom algebra
 val myCustomAlgebra = new SecretStrategyAlgebra:
-final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
-  Obfuscator.of { (plain: P) => KeyValueBuffer(ByteBuffer.allocateDirect(0), f(plain)) }
+  final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
+    Obfuscator.of { (plain: P) => KeyValueBuffer(ByteBuffer.allocateDirect(0), f(plain)) }
 
-final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
-  DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
+  final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
+    DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory

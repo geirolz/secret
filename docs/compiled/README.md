@@ -10,15 +10,15 @@
 
 A Scala 3, functional, type-safe and memory-safe library to handle secret values 
 
-`Secret` library does the best to avoid leaking information in memory and in the code BUT an attack is always possible and I don't give any certainties or
-guarantees about security using this library, you use it at your own risk. The code is open sourced, you can check the implementation and take your
-decision consciously. I'll do my best to improve the security and the documentation of this project.
+`Secret` library does its best to avoid leaking information in memory and in the code, BUT an attack is always possible,
+and I don't give any certainties or guarantees about security by using this library, you use it at your own risk. The code is open-sourced; you can check the implementation and take your
+decision consciously. I'll do my best to improve the security and documentation of this project.
 
 Please, drop a ⭐️ if you are interested in this project and you want to support it.
 
 Scala 3 only, Scala 2 is not supported.
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.4"
+libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.6"
 ```
 
 ## Obfuscation
@@ -43,7 +43,7 @@ case class Database(password: String)
 
 val secretString: Secret[String]  = Secret("password")
 // secretString: Secret[String] = ** SECRET **
-val database: Either[SecretDestroyed, Database]       = secretString.useAndDestroyE(password => Database(password))
+val database: Either[SecretDestroyed, Database] = secretString.useAndDestroyE(password => Database(password))
 // database: Either[SecretDestroyed, Database] = Right(
 //   value = Database(password = "password")
 // )
@@ -51,7 +51,7 @@ val database: Either[SecretDestroyed, Database]       = secretString.useAndDestr
 // if you try to access the secret value once used, you'll get an error
 secretString.useE(println(_))
 // res1: Either[SecretDestroyed, Unit] = Left(
-//   value = SecretDestroyed(destroyedAt = README.md:25:119)
+//   value = SecretDestroyed(destructionLocation = README.md:25:113)
 // )
 ```
 
@@ -61,7 +61,7 @@ These integrations aim to enhance the functionality and capabilities of `Secret`
 
 #### Cats Effect
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.4"
+libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.6"
 ```
 
 ```scala
@@ -73,7 +73,7 @@ val res: Resource[IO, String] = Secret("password").resource[IO]
 
 #### Pureconfig
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.4"
+libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.6"
 ```
 
 Just provides the `ConfigReader` instance for `Secret[T]` type.
@@ -83,7 +83,7 @@ import com.geirolz.secret.pureconfig.given
 ```
 #### Typesafe Config
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.4"
+libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.6"
 ```
 ```scala
 import com.geirolz.secret.typesafe.config.given
@@ -91,7 +91,7 @@ import com.geirolz.secret.typesafe.config.given
 
 #### Ciris
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.4"
+libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.6"
 ```
 ```scala
 import com.geirolz.secret.ciris.given
@@ -109,11 +109,10 @@ If you think that your strategy can be useful for other people, please consider 
 ```scala
 import com.geirolz.secret.strategy.SecretStrategy
 import com.geirolz.secret.strategy.SecretStrategy.{DeObfuscator, Obfuscator}
-import com.geirolz.secret.{KeyValueBuffer, Secret}
+import com.geirolz.secret.util.KeyValueBuffer
+import com.geirolz.secret.Secret
 
-given SecretStrategy
-[String
-] = SecretStrategy[String](
+given SecretStrategy[String] = SecretStrategy[String](
   Obfuscator.of[String](_ => KeyValueBuffer.directEmpty(0)),
   DeObfuscator.of[String](_ => "CUSTOM"),
 )
@@ -130,22 +129,23 @@ If you think that your strategy can be useful for other people, please consider 
 ```scala
 import com.geirolz.secret.strategy.SecretStrategy.{DeObfuscator, Obfuscator}
 import com.geirolz.secret.strategy.{SecretStrategy, SecretStrategyAlgebra}
-import com.geirolz.secret.{KeyValueBuffer, PlainValueBuffer, Secret}
+import com.geirolz.secret.util.KeyValueBuffer
+import com.geirolz.secret.{PlainValueBuffer, Secret}
 
 import java.nio.ByteBuffer
 
 // build the custom algebra
 val myCustomAlgebra = new SecretStrategyAlgebra:
-final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
-  Obfuscator.of { (plain: P) => KeyValueBuffer(ByteBuffer.allocateDirect(0), f(plain)) }
+  final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
+    Obfuscator.of { (plain: P) => KeyValueBuffer(ByteBuffer.allocateDirect(0), f(plain)) }
 
-final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
-  DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp8$$anon$6@d448e97
+  final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
+    DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp8$$anon$6@76e533e
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@2729ee45
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@5335cbd2
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope
