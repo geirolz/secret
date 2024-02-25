@@ -1,6 +1,6 @@
 package com.geirolz.secret.utils
 
-import com.geirolz.secret.internal.BytesUtils
+import com.geirolz.secret.util.BytesUtils
 import java.nio.ByteBuffer
 
 class BytesUtilsSuite extends munit.FunSuite:

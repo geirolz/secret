@@ -1,9 +1,10 @@
 package com.geirolz.secret.strategy.algebra
 
-import com.geirolz.secret.internal.BytesUtils.{clearByteArray, clearByteBuffer}
+import com.geirolz.secret.util.BytesUtils.{clearByteArray, clearByteBuffer}
 import com.geirolz.secret.strategy.SecretStrategy.{DeObfuscator, Obfuscator}
 import com.geirolz.secret.strategy.SecretStrategyAlgebra
-import com.geirolz.secret.{KeyBuffer, KeyValueBuffer, ObfuscatedValueBuffer, PlainValueBuffer}
+import com.geirolz.secret.util.KeyValueBuffer
+import com.geirolz.secret.{KeyBuffer, ObfuscatedValueBuffer, PlainValueBuffer}
 
 import java.nio.ByteBuffer
 import java.security.SecureRandom

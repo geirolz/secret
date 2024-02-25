@@ -1,4 +1,4 @@
-package com.geirolz.secret.internal
+package com.geirolz.secret.util
 
 import cats.Show
 
@@ -14,6 +14,8 @@ class Location(
   override def toString: String = s"$sourceFile:$line:$column"
 
 object Location:
+
+  val unknown: Location = new Location("unknown", 0, 0, None)
 
   inline given Location = ${ currentLocationMacro }
   private def currentLocationMacro(using Quotes): Expr[Location] =

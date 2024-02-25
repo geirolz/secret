@@ -1,7 +1,7 @@
 package com.geirolz.secret
 
 import cats.{MonadError, Show}
-import com.geirolz.secret.internal.Location
+import com.geirolz.secret.util.Location
 
 import java.nio.ByteBuffer
 import scala.util.control.NoStackTrace
@@ -11,8 +11,8 @@ type ObfuscatedValueBuffer          = ByteBuffer
 type KeyBuffer                      = ByteBuffer
 private type MonadSecretError[F[_]] = MonadError[F, ? >: SecretDestroyed]
 
-case class SecretDestroyed(destroyedAt: Location)
-    extends RuntimeException(s"This secret has been already destroyed.\nLocation: $destroyedAt")
+case class SecretDestroyed(destructionLocation: Location)
+    extends RuntimeException(s"This secret has been already destroyed.\nLocation: $destructionLocation")
     with NoStackTrace
 
 object SecretDestroyed:

@@ -4,7 +4,8 @@ import scala.language.postfixOps
 object ProjectDependencies {
 
   // base
-  private val catsVersion = "2.10.0"
+  private val catsVersion   = "2.10.0"
+  private val bcryptVersion = "0.10.2"
   // test
   private val munitVersion       = "0.7.29"
   private val munitEffectVersion = "1.0.7"
@@ -18,6 +19,7 @@ object ProjectDependencies {
   lazy val common: Seq[ModuleID] = Seq(
     // base
     "org.typelevel" %% "cats-core" % catsVersion,
+    "at.favre.lib"   % "bcrypt"    % bcryptVersion,
 
     // test
     "org.typelevel"  %% "cats-effect"         % catsEffectVersion  % Test,

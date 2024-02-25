@@ -1,7 +1,7 @@
-package com.geirolz.secret
+package com.geirolz.secret.util
 
-import cats.{Applicative, MonadThrow}
 import cats.syntax.all.*
+import cats.{Applicative, MonadThrow}
 
 trait SysEnv[F[_]]:
   def getEnv(key: String): F[Option[String]]

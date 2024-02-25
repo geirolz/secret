@@ -2,6 +2,7 @@ package com.geirolz.secret.strategy
 
 import com.geirolz.secret.*
 import com.geirolz.secret.strategy.SecretStrategy.{DeObfuscator, Obfuscator}
+import com.geirolz.secret.util.KeyValueBuffer
 
 opaque type SecretStrategy[P] = (Obfuscator[P], DeObfuscator[P])
 object SecretStrategy extends SecretStrategyFactory(SecretStrategyAlgebra.xor):

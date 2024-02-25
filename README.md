@@ -8,9 +8,9 @@
 [![Mergify Status](https://img.shields.io/endpoint.svg?url=https://api.mergify.com/v1/badges/geirolz/secret&style=flat)](https://mergify.io)
 [![GitHub license](https://img.shields.io/github/license/geirolz/secret)](https://github.com/geirolz/secret/blob/main/LICENSE)
 
-A Scala 3, functional, type-safe and memory-safe library to handle secret values
+A Scala 3, functional, type-safe and memory-safe library to handle secret values 
 
-`Secret` library does its best to avoid leaking information in memory and in the code, BUT an attack is always possible, 
+`Secret` library does its best to avoid leaking information in memory and in the code, BUT an attack is always possible,
 and I don't give any certainties or guarantees about security by using this library, you use it at your own risk. The code is open-sourced; you can check the implementation and take your
 decision consciously. I'll do my best to improve the security and documentation of this project.
 
@@ -43,7 +43,7 @@ case class Database(password: String)
 
 val secretString: Secret[String]  = Secret("password")
 // secretString: Secret[String] = ** SECRET **
-val database: Either[SecretDestroyed, Database]       = secretString.useAndDestroyE(password => Database(password))
+val database: Either[SecretDestroyed, Database] = secretString.useAndDestroyE(password => Database(password))
 // database: Either[SecretDestroyed, Database] = Right(
 //   value = Database(password = "password")
 // )
@@ -51,7 +51,7 @@ val database: Either[SecretDestroyed, Database]       = secretString.useAndDestr
 // if you try to access the secret value once used, you'll get an error
 secretString.useE(println(_))
 // res1: Either[SecretDestroyed, Unit] = Left(
-//   value = SecretDestroyed(destroyedAt = README.md:25:119)
+//   value = SecretDestroyed(destructionLocation = README.md:25:113)
 // )
 ```
 
@@ -109,11 +109,12 @@ If you think that your strategy can be useful for other people, please consider 
 ```scala
 import com.geirolz.secret.strategy.SecretStrategy
 import com.geirolz.secret.strategy.SecretStrategy.{DeObfuscator, Obfuscator}
-import com.geirolz.secret.{KeyValueBuffer, Secret}
+import com.geirolz.secret.util.KeyValueBuffer
+import com.geirolz.secret.Secret
 
 given SecretStrategy[String] = SecretStrategy[String](
-   Obfuscator.of[String](_ => KeyValueBuffer.directEmpty(0)),
-   DeObfuscator.of[String](_ => "CUSTOM"),
+  Obfuscator.of[String](_ => KeyValueBuffer.directEmpty(0)),
+  DeObfuscator.of[String](_ => "CUSTOM"),
 )
 
 Secret("my_password").useE(secret => secret)
@@ -128,32 +129,35 @@ If you think that your strategy can be useful for other people, please consider 
 ```scala
 import com.geirolz.secret.strategy.SecretStrategy.{DeObfuscator, Obfuscator}
 import com.geirolz.secret.strategy.{SecretStrategy, SecretStrategyAlgebra}
-import com.geirolz.secret.{KeyValueBuffer, PlainValueBuffer, Secret}
+import com.geirolz.secret.util.KeyValueBuffer
+import com.geirolz.secret.{PlainValueBuffer, Secret}
 
 import java.nio.ByteBuffer
 
 // build the custom algebra
 val myCustomAlgebra = new SecretStrategyAlgebra:
-final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
-   Obfuscator.of { (plain: P) => KeyValueBuffer(ByteBuffer.allocateDirect(0), f(plain)) }
+  final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
+    Obfuscator.of { (plain: P) => KeyValueBuffer(ByteBuffer.allocateDirect(0), f(plain)) }
 
-final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
-   DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp8$$anon$6@d448e97
+  final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
+    DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp8$$anon$6@76e533e
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@2729ee45
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@5335cbd2
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope
+
 import myCustomStrategyFactory.given
+
 Secret("my_password").useE(secret => secret)
 // res9: Either[SecretDestroyed, String] = Right(value = "my_password")
 
 // or restricted to a specific scope
 myCustomStrategyFactory {
-   Secret("my_password").useE(secret => secret)
+  Secret("my_password").useE(secret => secret)
 }
 // res10: Either[SecretDestroyed, String] = Right(value = "my_password")
 ```
