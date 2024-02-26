@@ -8,6 +8,13 @@ import java.nio.charset.Charset
 import scala.collection.immutable.ArraySeq
 import scala.reflect.ClassTag
 
+/** Factory for [[SecretStrategy]].
+  *
+  * Implicitly provides [[SecretStrategy]] for primitive types and collections.
+  *
+  * @param algebra
+  *   the algebra used to build the [[SecretStrategy]].
+  */
 class SecretStrategyFactory private[secret] (algebra: SecretStrategyAlgebra):
 
   def apply[U](f: SecretStrategyFactory ?=> U): U =

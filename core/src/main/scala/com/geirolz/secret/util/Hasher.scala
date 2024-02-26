@@ -5,6 +5,10 @@ import com.geirolz.secret.util.BytesUtils.clearByteBuffer
 
 import java.nio.ByteBuffer
 
+/** A trait that represents a hasher. A hasher is an object that can hash a sequence of characters into a hash.
+  *
+  * The hash is represented as a ByteBuffer.
+  */
 trait Hasher:
   def hash(chars: => Array[Byte], maxSize: Int = -1): ByteBuffer
 

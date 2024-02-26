@@ -6,10 +6,23 @@ import java.util
 
 private[secret] object BytesUtils:
 
+  /** Clear the content of a byte array
+    * @param bytes
+    *   the byte array to clear
+    * @return
+    *   a null reference
+    */
   def clearByteArray(bytes: Array[Byte]): Null =
     util.Arrays.fill(bytes, 0.toByte)
     null
 
+  /** Clear the content of a byte buffer
+    *
+    * @param buffer
+    *   the byte buffer to clear
+    * @return
+    *   a null reference
+    */
   def clearByteBuffer(buffer: ByteBuffer): Null =
     val zeroBytesArray = new Array[Byte](buffer.capacity())
     util.Arrays.fill(zeroBytesArray, 0.toByte)
@@ -17,6 +30,19 @@ private[secret] object BytesUtils:
     buffer.put(zeroBytesArray)
     null
 
+  /** Convert a byte array to a string
+    *
+    * @param buffer
+    *   the byte buffer to convert
+    * @param start
+    *   the start index
+    * @param len
+    *   the length
+    * @param charset
+    *   the charset to use
+    * @return
+    *   the string representation of the byte buffer
+    */
   def asString(
     buffer: => ByteBuffer,
     start: Int       = 0,

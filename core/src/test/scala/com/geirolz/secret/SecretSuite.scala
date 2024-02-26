@@ -35,13 +35,13 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
   testSecretStrategyFor[ArraySeq[Char]]
 
   test("Simple Secret String") {
-    Secret("TEST").useAndDestroyE(_ => ())
+    Secret("TEST").euseAndDestroy(_ => ())
   }
 
   test("Simple Secret String destroyed") {
     val s1 = Secret("TEST")
-    s1.useAndDestroyE(_ => ())
-    println(s1.useAndDestroyE(_ => ()))
+    s1.euseAndDestroy(_ => ())
+    println(s1.euseAndDestroy(_ => ()))
   }
 
   test("Secret.fromEnv") {
@@ -49,7 +49,7 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
     Secret
       .fromEnv[Try]("TEST")
       .get
-      .useAndDestroyE(value =>
+      .euseAndDestroy(value =>
         assertEquals(
           obtained = value,
           expected = "VALUE"
@@ -73,7 +73,7 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
 
     // some
     val someSecret: Option[Secret[String]] = Option(Secret("TEST"))
-    someSecret.getOrEmptySecret.useAndDestroyE { value =>
+    someSecret.getOrEmptySecret.euseAndDestroy { value =>
       assertEquals(
         obtained = value,
         expected = "TEST"
@@ -82,7 +82,7 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
 
     // none
     val noneSecret: Option[Secret[String]] = None
-    noneSecret.getOrEmptySecret.useAndDestroyE { value =>
+    noneSecret.getOrEmptySecret.euseAndDestroy { value =>
       assertEquals(
         obtained = value,
         expected = ""
@@ -94,7 +94,7 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
 
     // some
     val rightSecret: Either[String, Secret[String]] = Right(Secret("TEST"))
-    rightSecret.getOrEmptySecret.useAndDestroyE { value =>
+    rightSecret.getOrEmptySecret.euseAndDestroy { value =>
       assertEquals(
         obtained = value,
         expected = "TEST"
@@ -103,7 +103,7 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
 
     // none
     val leftSecret: Either[String, Secret[String]] = Left("ERROR")
-    leftSecret.getOrEmptySecret.useAndDestroyE { value =>
+    leftSecret.getOrEmptySecret.euseAndDestroy { value =>
       assertEquals(
         obtained = value,
         expected = ""
@@ -142,7 +142,7 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
          |qrcdEKGo$922SMvc5zYU6ZpFQrk31hRbc48obb1c48obbQrqgk36S
          |qrcdEKGo$922SMvc5zYU6ZpFQrk31hRbc48obb1c48obbQrqgk36S
          |""".stripMargin
-    ).useAndDestroyE(_ => ())
+    ).euseAndDestroy(_ => ())
   }
 
   private def testSecretStrategyFor[T: Arbitrary: Eq: SecretStrategy](using c: ClassTag[T]): Unit = {

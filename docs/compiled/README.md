@@ -43,13 +43,13 @@ case class Database(password: String)
 
 val secretString: Secret[String]  = Secret("password")
 // secretString: Secret[String] = ** SECRET **
-val database: Either[SecretDestroyed, Database] = secretString.useAndDestroyE(password => Database(password))
+val database: Either[SecretDestroyed, Database] = secretString.euseAndDestroy(password => Database(password))
 // database: Either[SecretDestroyed, Database] = Right(
 //   value = Database(password = "password")
 // )
 
 // if you try to access the secret value once used, you'll get an error
-secretString.useE(println(_))
+secretString.euse(println(_))
 // res1: Either[SecretDestroyed, Unit] = Left(
 //   value = SecretDestroyed(destructionLocation = README.md:25:113)
 // )
@@ -117,7 +117,7 @@ given SecretStrategy[String] = SecretStrategy[String](
   DeObfuscator.of[String](_ => "CUSTOM"),
 )
 
-Secret("my_password").useE(secret => secret)
+Secret("my_password").euse(secret => secret)
 // res7: Either[SecretDestroyed, String] = Right(value = "CUSTOM")
 ```
 
@@ -136,28 +136,28 @@ import java.nio.ByteBuffer
 
 // build the custom algebra
 val myCustomAlgebra = new SecretStrategyAlgebra:
-  final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
-    Obfuscator.of { (plain: P) => KeyValueBuffer(ByteBuffer.allocateDirect(0), f(plain)) }
-
-  final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
-    DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp8$$anon$6@76e533e
+    final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
+      Obfuscator.of { (plain: P) => KeyValueBuffer(ByteBuffer.allocateDirect(0), f(plain)) }
+    
+    final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
+      DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp8$$anon$6@52112691
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@5335cbd2
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@e3d25e5
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope
 
 import myCustomStrategyFactory.given
 
-Secret("my_password").useE(secret => secret)
+Secret("my_password").euse(secret => secret)
 // res9: Either[SecretDestroyed, String] = Right(value = "my_password")
 
 // or restricted to a specific scope
 myCustomStrategyFactory {
-  Secret("my_password").useE(secret => secret)
+  Secret("my_password").euse(secret => secret)
 }
 // res10: Either[SecretDestroyed, String] = Right(value = "my_password")
 ```

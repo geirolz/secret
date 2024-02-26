@@ -1,11 +1,34 @@
 package com.geirolz.secret.typesafe.config
 
-import com.geirolz.secret.Secret
+import com.geirolz.secret.{OneShotSecret, Secret}
 import com.typesafe.config.{Config, ConfigFactory}
 
 class TypesafeConfigSecretSupportSuite extends munit.FunSuite:
 
-  test("Read secret string with typesafe config") {
+  test("Read OneShotSecret string with typesafe config") {
+
+    val config: Config = ConfigFactory.parseString(
+      """
+          |conf {
+          | secret-value: "my-super-secret-password"
+          |}""".stripMargin
+    )
+
+    val result: OneShotSecret[String] = config.getOneShotSecret[String]("conf.secret-value")
+
+    assert(
+      result
+        .euseAndDestroy(secretValue => {
+          assertEquals(
+            obtained = secretValue,
+            expected = "my-super-secret-password"
+          )
+        })
+        .isRight
+    )
+  }
+
+  test("Read Secret string with typesafe config") {
 
     val config: Config = ConfigFactory.parseString(
       """
@@ -18,7 +41,7 @@ class TypesafeConfigSecretSupportSuite extends munit.FunSuite:
 
     assert(
       result
-        .useE(secretValue => {
+        .euse(secretValue => {
           assertEquals(
             obtained = secretValue,
             expected = "my-super-secret-password"
