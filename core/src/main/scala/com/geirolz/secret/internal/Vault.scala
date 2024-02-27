@@ -29,7 +29,7 @@ private[secret] object Vault:
     var hashedValue: Eval[ByteBuffer] | Null = Eval.later(
       hasher.hash(
         chars   = value.toString.getBytes,
-        maxSize = 12
+        maxSize = Some(12)
       )
     )
 
