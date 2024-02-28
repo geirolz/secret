@@ -6,14 +6,10 @@ import com.geirolz.secret.util.Location
 import java.nio.ByteBuffer
 import scala.util.control.NoStackTrace
 
-type PlainValueBuffer               = ByteBuffer
-type ObfuscatedValueBuffer          = ByteBuffer
-type KeyBuffer                      = ByteBuffer
-private type MonadSecretError[F[_]] = MonadError[F, ? >: SecretDestroyed]
-
-case class SecretDestroyed(destructionLocation: Location)
-    extends RuntimeException(s"This secret has been already destroyed.\nLocation: $destructionLocation")
-    with NoStackTrace
-
-object SecretDestroyed:
-  given Show[SecretDestroyed] = Show(_.getMessage)
+type PlainValueBuffer                       = ByteBuffer
+type ObfuscatedValueBuffer                  = ByteBuffer
+type KeyBuffer                              = ByteBuffer
+private[secret] type MonadSecretError[F[_]] = MonadError[F, ? >: SecretDestroyed]
+private[secret] val vaultTag: String     = "** VAULT **"
+private[secret] val secretTag: String    = "** SECRET **"
+private[secret] val destroyedTag: String = "** DESTROYED **"

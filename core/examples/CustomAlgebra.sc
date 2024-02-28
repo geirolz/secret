@@ -18,9 +18,9 @@ val myCustomStrategyFactory = myCustomAlgebra.newFactory
 
 // implicitly in the scope
 import myCustomStrategyFactory.given
-Secret("my_password").useE(secret => secret)
+Secret("my_password").euse(secret => secret)
 
 // or restricted to a specific scope
 myCustomStrategyFactory {
-  Secret("my_password").useE(secret => secret)
+  Secret("my_password").euse(secret => secret)
 }

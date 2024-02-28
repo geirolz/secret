@@ -5,6 +5,12 @@ import com.geirolz.secret.{KeyBuffer, ObfuscatedValueBuffer}
 
 import java.nio.ByteBuffer
 
+/** A wrapper for a key and a value buffer
+  * @param _keyBuffer
+  *   the key buffer
+  * @param _obfuscatedBuffer
+  *   the value buffer
+  */
 class KeyValueBuffer(_keyBuffer: KeyBuffer, _obfuscatedBuffer: ObfuscatedValueBuffer) extends AutoCloseable:
   val roKeyBuffer: KeyBuffer                    = _keyBuffer.asReadOnlyBuffer()
   val roObfuscatedBuffer: ObfuscatedValueBuffer = _obfuscatedBuffer.asReadOnlyBuffer()

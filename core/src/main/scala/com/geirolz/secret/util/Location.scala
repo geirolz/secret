@@ -17,7 +17,12 @@ object Location:
 
   val unknown: Location = new Location("unknown", 0, 0, None)
 
+  /** Macro to get the current location
+    * @return
+    *   the current location
+    */
   inline given Location = ${ currentLocationMacro }
+
   private def currentLocationMacro(using Quotes): Expr[Location] =
     val position                         = quotes.reflect.Position.ofMacroExpansion
     val sourceFile: Expr[String]         = Expr(position.sourceFile.toString)

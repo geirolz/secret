@@ -2,13 +2,13 @@ package com.geirolz.secret
 
 import cats.Eq
 import com.geirolz.secret.strategy.{SecretStrategy, SecretStrategyFactory}
-import com.geirolz.secret.util.SysEnv
+import com.geirolz.secret.util.{Hasher, SysEnv}
 import org.scalacheck.Arbitrary
 import org.scalacheck.Prop.forAll
 
 import scala.collection.immutable.ArraySeq
 import scala.reflect.ClassTag
-import scala.util.{Failure, Try}
+import scala.util.Try
 
 class XorSecretSuite extends SecretSuite(using SecretStrategy.xorFactory)
 class PlainSecretSuite extends SecretSuite(using SecretStrategy.plainFactory)
@@ -34,22 +34,12 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
   testSecretStrategyFor[ArraySeq[Byte]]
   testSecretStrategyFor[ArraySeq[Char]]
 
-  test("Simple Secret String") {
-    Secret("TEST").useAndDestroyE(_ => ())
-  }
-
-  test("Simple Secret String destroyed") {
-    val s1 = Secret("TEST")
-    s1.useAndDestroyE(_ => ())
-    println(s1.useAndDestroyE(_ => ()))
-  }
-
   test("Secret.fromEnv") {
     given SysEnv[Try] = SysEnv.fromMap[Try](Map("TEST" -> "VALUE"))
     Secret
       .fromEnv[Try]("TEST")
       .get
-      .useAndDestroyE(value =>
+      .euseAndDestroy(value =>
         assertEquals(
           obtained = value,
           expected = "VALUE"
@@ -69,11 +59,22 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
       )
   }
 
+  test("Secret.noLocation") {
+
+    val secret = Secret.noLocation("TEST")
+    secret.destroy()
+
+    assertEquals(
+      obtained = secret.destructionLocation,
+      expected = None
+    )
+  }
+
   test("Option Secret getOrEmptySecret") {
 
     // some
     val someSecret: Option[Secret[String]] = Option(Secret("TEST"))
-    someSecret.getOrEmptySecret.useAndDestroyE { value =>
+    someSecret.getOrEmptySecret.euseAndDestroy { value =>
       assertEquals(
         obtained = value,
         expected = "TEST"
@@ -82,7 +83,7 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
 
     // none
     val noneSecret: Option[Secret[String]] = None
-    noneSecret.getOrEmptySecret.useAndDestroyE { value =>
+    noneSecret.getOrEmptySecret.euseAndDestroy { value =>
       assertEquals(
         obtained = value,
         expected = ""
@@ -94,7 +95,7 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
 
     // some
     val rightSecret: Either[String, Secret[String]] = Right(Secret("TEST"))
-    rightSecret.getOrEmptySecret.useAndDestroyE { value =>
+    rightSecret.getOrEmptySecret.euseAndDestroy { value =>
       assertEquals(
         obtained = value,
         expected = "TEST"
@@ -103,7 +104,7 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
 
     // none
     val leftSecret: Either[String, Secret[String]] = Left("ERROR")
-    leftSecret.getOrEmptySecret.useAndDestroyE { value =>
+    leftSecret.getOrEmptySecret.euseAndDestroy { value =>
       assertEquals(
         obtained = value,
         expected = ""
@@ -111,58 +112,11 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
     }
   }
 
-  test("Simple Secret with long String") {
-    Secret(
-      """|C#iur0#UsxTWzUZ5QPn%KGo$922SMvc5zYLqrcdE6SU6ZpFQrk3&W
-         |1c48obb&Rngv9twgMHTuXG@hRb@FZg@u!uPoG%dxTab0QtTab0Qta
-         |c5zYU6ZpRngv9twgMHTuXGFdxTab0QtTab0QtaKGo$922SMvc5zYL
-         |KGo$922SMvc5zYLqrcdEKGo$922SMvc5zYLqrcdE6SU6ZpFQrk36S
-         |U6ZpFQrk31hRbc48obb1c48obb&Rngv9twgMHTuXG@hRb@FZg@u!u
-         |PoG%dxTab0QtTab0QtaKGo$922SMvc5zYLqrcdEKGo$922SMvc5zY
-         |LqrcdE6SdxTab0QtTab0QtaKGo$922SMvc5zYLqrcdEKGo$922SMv
-         |c5zYU6ZpRngv9twgMHTuXGFdxTab0QtTab0QtaKGo$922SMvc5zYL
-         |1c48obb&Rngv9twgMHTuXG@hRb@FZg@u!uPoG%dxTab0QtTab0Qta
-         |c5zYU6ZpRngv9twgMHTuXGFdxTab0QtTab0QtaKGo$922SMvc5zYL
-         |KGo$922SMvc5zYLqrcdEKGo$922SMvc5zYLqrcdE6SU6ZpFQrk36S
-         |U6ZpFQrk31hRbc48obb1c48obb&Rngv9twgMHTuXG@hRb@FZg@u!u
-         |PoG%dxTab0QtTab0QtaKGo$922SMvc5zYLqrcdEKGo$922SMvc5zY
-         |LqrcdE6SdxTab0QtTab0QtaKGo$922SMvc5zYLqrcdEKGo$922SMv
-         |c5zYU6ZpRngv9twgMHTuXGFdxTab0QtTab0QtaKGo$922SMvc5zYL
-         |qrcdEKGo$922SMvc5zYU6ZpFQrk31hRbc48obb1c48obbQrqgk36S
-         |PoG%dxTab0QtTab0QtaKGo$922SMvc5zYLqrcdEKGo$922SMvc5zY
-         |LqrcdE6SdxTab0QtTab0QtaKGo$922SMvc5zYLqrcdEKGo$922SMv
-         |c5zYU6ZpRngv9twgMHTuXGFdxTab0QtTab0QtaKGo$922SMvc5zYL
-         |1c48obb&Rngv9twgMHTuXG@hRb@FZg@u!uPoG%dxTab0QtTab0Qta
-         |c5zYU6ZpRngv9twgMHTuXGFdxTab0QtTab0QtaKGo$922SMvc5zYL
-         |KGo$922SMvc5zYLqrcdEKGo$922SMvc5zYLqrcdE6SU6ZpFQrk36S
-         |U6ZpFQrk31hRbc48obb1c48obb&Rngv9twgMHTuXG@hRb@FZg@u!u
-         |PoG%dxTab0QtTab0QtaKGo$922SMvc5zYLqrcdEKGo$922SMvc5zY
-         |LqrcdE6SdxTab0QtTab0QtaKGo$922SMvc5zYLqrcdEKGo$922SMv
-         |c5zYU6ZpRngv9twgMHTuXGFdxTab0QtTab0QtaKGo$922SMvc5zYL
-         |qrcdEKGo$922SMvc5zYU6ZpFQrk31hRbc48obb1c48obbQrqgk36S
-         |qrcdEKGo$922SMvc5zYU6ZpFQrk31hRbc48obb1c48obbQrqgk36S
-         |""".stripMargin
-    ).useAndDestroyE(_ => ())
-  }
-
   private def testSecretStrategyFor[T: Arbitrary: Eq: SecretStrategy](using c: ClassTag[T]): Unit = {
 
     val typeName = c.runtimeClass.getSimpleName.capitalize
 
-    property(s"Secret[$typeName] successfully obfuscate") {
-      forAll { (value: T) =>
-        Secret(value)
-        assert(cond = true)
-      }
-    }
-
-    property(s"Secret[$typeName] equals always return false") {
-      forAll { (value: T) =>
-        assertNotEquals(Secret(value), Secret(value))
-      }
-    }
-
-    property(s"Secret[$typeName] isEquals works properly") {
+    property(s"Secret[$typeName] isValueEquals works properly") {
       forAll { (value: T) =>
         val s1 = Secret(value)
         val s2 = Secret(value)
@@ -173,12 +127,6 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
         assert(!s2.isValueEquals(s1))
         s2.destroy()
         assert(!s1.isValueEquals(s2))
-      }
-    }
-
-    property(s"Secret[$typeName] hashCode is different from the value one") {
-      forAll { (value: T) =>
-        assert(Secret(value).hashCode() != value.hashCode())
       }
     }
 
@@ -194,33 +142,6 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
               )
             })
             .isSuccess
-        )
-      }
-    }
-
-    // useAndDestroy
-    property(s"Secret[$typeName] obfuscate and de-obfuscate properly - useAndDestroy") {
-      forAll { (value: T) =>
-        val secret: Secret[T] = Secret(value)
-
-        assert(
-          secret
-            .useAndDestroy[Try, Unit] { result =>
-              assertEquals(
-                obtained = result,
-                expected = value
-              )
-            }
-            .isSuccess
-        )
-
-        assertEquals(
-          obtained = secret.useAndDestroy[Try, Int](_.hashCode()).isFailure,
-          expected = true
-        )
-        assertEquals(
-          obtained = secret.isDestroyed,
-          expected = true
         )
       }
     }

@@ -8,4 +8,4 @@ given SecretStrategy[String] = SecretStrategy[String](
   DeObfuscator.of[String](_ => "CUSTOM")
 )
 
-Secret("my_password").useE(secret => secret)
+Secret("my_password").euse(secret => secret)

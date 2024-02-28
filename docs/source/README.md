@@ -42,10 +42,10 @@ import scala.util.Try
 case class Database(password: String)
 
 val secretString: Secret[String]  = Secret("password")
-val database: Either[SecretDestroyed, Database] = secretString.useAndDestroyE(password => Database(password))
+val database: Either[SecretDestroyed, Database] = secretString.euseAndDestroy(password => Database(password))
 
 // if you try to access the secret value once used, you'll get an error
-secretString.useE(println(_))
+secretString.euse(println(_))
 ```
 
 ### Integrations
@@ -110,7 +110,7 @@ given SecretStrategy[String] = SecretStrategy[String](
   DeObfuscator.of[String](_ => "CUSTOM"),
 )
 
-Secret("my_password").useE(secret => secret)
+Secret("my_password").euse(secret => secret)
 ```
 
 ## Custom Obfuscation Strategy algebra
@@ -128,11 +128,11 @@ import java.nio.ByteBuffer
 
 // build the custom algebra
 val myCustomAlgebra = new SecretStrategyAlgebra:
-  final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
-    Obfuscator.of { (plain: P) => KeyValueBuffer(ByteBuffer.allocateDirect(0), f(plain)) }
-
-  final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
-    DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
+    final def obfuscator[P](f: P => PlainValueBuffer): Obfuscator[P] =
+      Obfuscator.of { (plain: P) => KeyValueBuffer(ByteBuffer.allocateDirect(0), f(plain)) }
+    
+    final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
+      DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
@@ -142,11 +142,11 @@ val myCustomStrategyFactory = myCustomAlgebra.newFactory
 
 import myCustomStrategyFactory.given
 
-Secret("my_password").useE(secret => secret)
+Secret("my_password").euse(secret => secret)
 
 // or restricted to a specific scope
 myCustomStrategyFactory {
-  Secret("my_password").useE(secret => secret)
+  Secret("my_password").euse(secret => secret)
 }
 ```
 

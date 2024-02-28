@@ -28,11 +28,23 @@ sealed trait DeferredSecret[F[_], T]:
     */
   def use[U](f: T => U): F[U]
 
+  /** Acquire the secret value and transform it.
+    *
+    * The secret is be destroyed after the use
+    */
+  def useRaw[U](f: Secret[T] => U): F[U]
+
   /** This method acquire the Secret value every time and once used destroy the secret. It doesn't has the suffix
     * "AndDestroy" because it's the default behavior of the DeferredSecret which could be called any number of times
     * since it re-create every time.
     */
   def evalUse[U](f: T => F[U]): F[U]
+
+  /** Acquire the secret value and transform it in `F`.
+    *
+    * The secret is be destroyed after the use
+    */
+  def evalUseRaw[U](f: Secret[T] => F[U]): F[U]
 
   /** Map the secret value to `U` */
   def map[U: SecretStrategy](f: T => U)(using Hasher): DeferredSecret[F, U]
@@ -76,11 +88,17 @@ object DeferredSecret:
 
       private[secret] def acquire = _acquire
 
+      override def useRaw[U](f: Secret[T] => U): F[U] =
+        acquire.map(f)
+
       override def use[U](f: T => U): F[U] =
-        acquire.flatMap(_.useAndDestroy(f))
+        useRaw(_.useAndDestroy(f)).flatten
 
       override def evalUse[U](f: T => F[U]): F[U] =
-        acquire.flatMap(_.evalUseAndDestroy(f))
+        evalUseRaw(_.evalUseAndDestroy(f))
+
+      override def evalUseRaw[U](f: Secret[T] => F[U]): F[U] =
+        acquire.flatMap(f)
 
       override def map[U: SecretStrategy](f: T => U)(using Hasher): DeferredSecret[F, U] =
         DeferredSecret.fromSecret(acquire.map(_.map(f)))
