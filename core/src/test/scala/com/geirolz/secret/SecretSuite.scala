@@ -59,6 +59,17 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
       )
   }
 
+  test("Secret.noLocation") {
+
+    val secret = Secret.noLocation("TEST")
+    secret.destroy()
+
+    assertEquals(
+      obtained = secret.destructionLocation,
+      expected = None
+    )
+  }
+
   test("Option Secret getOrEmptySecret") {
 
     // some
@@ -105,7 +116,7 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
 
     val typeName = c.runtimeClass.getSimpleName.capitalize
 
-    property(s"Secret[$typeName] isEquals works properly") {
+    property(s"Secret[$typeName] isValueEquals works properly") {
       forAll { (value: T) =>
         val s1 = Secret(value)
         val s2 = Secret(value)

@@ -36,11 +36,11 @@ private[secret] object Vault:
     // do not use value inside the secret to avoid closure
     new Vault[T] {
 
-      private var _destructionLocation: Location = Location.unknown
+      private var _destructionLocation: Option[Location] = None
 
       override final def evalUse[F[_]: MonadSecretError, U](f: T => F[U]): F[U] =
         if (isDestroyed)
-          SecretDestroyed(_destructionLocation).raiseError[F, U]
+          SecretDestroyed(_destructionLocation.getOrElse(Location.unknown)).raiseError[F, U]
         else
           f(SecretStrategy[T].deObfuscator(bufferTuple))
 
@@ -49,10 +49,10 @@ private[secret] object Vault:
         bufferTuple = null
         hashedValue.map(BytesUtils.clearByteBuffer(_))
         hashedValue          = null
-        _destructionLocation = if (collectDestructionLocation) location else Location.unknown
+        _destructionLocation = if (collectDestructionLocation) Some(location) else None
 
       override final def destructionLocation: Option[Location] =
-        Option(_destructionLocation)
+        Option(_destructionLocation).flatten
 
       override final def isDestroyed: Boolean =
         bufferTuple == null
