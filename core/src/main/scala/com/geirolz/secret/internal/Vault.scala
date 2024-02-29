@@ -20,6 +20,15 @@ private[secret] trait Vault[T] extends AutoCloseable:
 
 private[secret] object Vault:
 
+  def destroyed[T](location: Location = Location.unknown): Vault[T] =
+    new Vault[T]:
+      override final def evalUse[F[_]: MonadSecretError, U](f: T => F[U]): F[U] =
+        SecretDestroyed(location).raiseError[F, U]
+      override final def destroy()(using location: Location): Unit = ()
+      override final def destructionLocation: Option[Location]     = None
+      override final def isDestroyed: Boolean                      = true
+      override final def hashed: String                            = destroyedTag
+
   def apply[T](value: => T, collectDestructionLocation: Boolean = true)(using
     strategy: SecretStrategy[T],
     hasher: Hasher
