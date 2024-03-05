@@ -8,7 +8,7 @@ import com.geirolz.secret.*
 
 import scala.util.hashing.Hashing
 
-private[secret] transparent trait SecretApi[T] extends AutoCloseable:
+private[secret] transparent trait SecretApi[T](protected val vault: Vault[T]) extends AutoCloseable:
 
   import cats.syntax.all.*
 
@@ -19,19 +19,22 @@ private[secret] transparent trait SecretApi[T] extends AutoCloseable:
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`,
     * `evalUse`, `evalUseAndDestroy` and other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  def destroy()(using Location): Unit
+  final def destroy()(using Location): Unit =
+    vault.destroy()
 
   /** @return
     *   the location where the secret was destroyed if the collection is enabled.
     */
-  def destructionLocation: Option[Location]
+  final def destructionLocation: Option[Location] =
+    vault.destructionLocation
 
   /** Check if the secret is destroyed
     *
     * @return
     *   `true` if the secret is destroyed, `false` otherwise
     */
-  def isDestroyed: Boolean
+  final def isDestroyed: Boolean =
+    vault.isDestroyed
 
   // ---------------- USAGE METHODS ----------------
 
@@ -53,7 +56,7 @@ private[secret] transparent trait SecretApi[T] extends AutoCloseable:
     * `evalUse`, `evalUseAndDestroy` and other methods, it will raise a `SecretDestroyed` exception.
     */
   inline final def evalUseAndDestroy[F[_]: MonadSecretError, U](f: T => F[U])(using Location): F[U] =
-    evalUse(f).map { u =>
+    vault.evalUse(f).map { u =>
       destroy(); u
     }
 
@@ -78,7 +81,7 @@ private[secret] transparent trait SecretApi[T] extends AutoCloseable:
   /** @return
     *   a hashed representation of the secret value
     */
-  def hashed: String
+  final def hashed: String = vault.hashed
 
   /** Safely compare the hashed value of this secret with the provided `Secret`. */
   inline def isHashedEquals(that: Secret[T]): Boolean =
@@ -105,9 +108,7 @@ private[secret] transparent trait SecretApi[T] extends AutoCloseable:
     * The usage of this method is discouraged. Use `use*` instead.
     */
   private[secret] inline def accessValue[F[_]: MonadSecretError]: F[T] =
-    evalUse[F, T](_.pure[F])
-
-  private[secret] def evalUse[F[_]: MonadSecretError, U](f: T => F[U]): F[U]
+    vault.evalUse[F, T](_.pure[F])
 
   /** Transform this secret */
   private[secret] def transform[U](t: this.type => Either[SecretDestroyed, Secret[U]]): Secret[U] =

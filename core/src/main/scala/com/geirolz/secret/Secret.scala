@@ -2,7 +2,7 @@ package com.geirolz.secret
 
 import cats.{Eq, MonadThrow}
 import com.geirolz.secret.Secret.*
-import com.geirolz.secret.internal.{SecretApi, SecretCompanionApi}
+import com.geirolz.secret.internal.{SecretApi, SecretCompanionApi, Vault}
 import com.geirolz.secret.strategy.SecretStrategy
 import com.geirolz.secret.util.*
 
@@ -35,9 +35,15 @@ import scala.util.Try
   *   val database: F[Database]         = secretString.use(password => initDb(password))
   * }}}
   */
-trait Secret[T] extends SecretApi[T]:
+abstract sealed class Secret[T] private (vault: Vault[T]) extends SecretApi[T](vault):
 
   import cats.syntax.all.*
+
+  /** Duplicate the secret without destroying it.
+    *
+    * If this was destroyed the duplicated will also be destroyed.
+    */
+  def duplicate: Secret[T]
 
   /** Apply `f` with the de-obfuscated value WITHOUT destroying it.
     *
@@ -46,7 +52,8 @@ trait Secret[T] extends SecretApi[T]:
     * Once the secret is destroyed it can't be used anymore. If you try to use it using `use`, `useAndDestroy`,
     * `evalUse`, `evalUseAndDestroy` and other methods, it will raise a `NoLongerValidSecret` exception.
     */
-  def evalUse[F[_]: MonadSecretError, U](f: T => F[U]): F[U]
+  final def evalUse[F[_]: MonadSecretError, U](f: T => F[U]): F[U] =
+    vault.evalUse(f)
 
   /** map the value using the specified function.
     *
@@ -82,14 +89,9 @@ trait Secret[T] extends SecretApi[T]:
   final def flatMap[U: SecretStrategy](f: T => Secret[U])(using Hasher): Secret[U] =
     transform(_.euse(f))
 
-  /** Duplicate the secret without destroying it.
-    *
-    * If this was destroyed the duplicated will also be destroyed.
-    */
-  def duplicate: Secret[T]
-
   /** [[OneShotSecret]] version of this secret */
-  def asOneShot: OneShotSecret[T]
+  final def asOneShot: OneShotSecret[T] =
+    new OneShotSecret(vault)
 
   /** Apply `f` with the de-obfuscated value WITHOUT destroying it.
     *
@@ -113,45 +115,19 @@ trait Secret[T] extends SecretApi[T]:
   inline def isValueEquals(that: Secret[T])(using Eq[T]): Boolean =
     evalUse[Try, Boolean](thisValue => that.use[Try, Boolean](_ === thisValue)).getOrElse(false)
 
-  // Private API
-  /** Avoid this method if possible. Unsafely apply `f` with the de-obfuscated value WITHOUT destroying it.
-    *
-    * If the secret is destroyed it will raise a `SecretDestroyed` exception.
-    *
-    * Throws `SecretNoLongerValid` if the secret has been already destroyed
-    */
-  @throws[SecretDestroyed]("if the secret has been already destroyed")
-  inline def unsafeUse[U](f: T => U): U =
-    use[Either[SecretDestroyed, *], U](f).fold(throw _, identity)
-
 object Secret extends SecretCompanionApi[Secret]:
-
-  import cats.syntax.all.given
   export DeferredSecret.apply as defer
   export DeferredSecret.fromEnv as deferFromEnv
 
   /** Create a destroyed secret */
   override def destroyed[T](location: Location = Location.unknown): Secret[T] =
-    new Secret[T]:
-      override def evalUse[F[_]: MonadSecretError, U](f: T => F[U]): F[U] = SecretDestroyed(location).raiseError[F, U]
-      override def destroy()(using location: Location): Unit              = ()
-      override def destructionLocation: Option[Location]                  = Some(location)
-      override def isDestroyed: Boolean                                   = true
-      override def hashed: String                                         = destroyedTag
-      override def duplicate: Secret[T]                                   = this
-      override def asOneShot: OneShotSecret[T]                            = OneShotSecret.destroyed(location)
+    new Secret[T](Vault.destroyed(location)):
+      override def duplicate: Secret[T] = this
 
   /** Create a secret from the given value */
   override def apply[T](value: => T, collectDestructionLocation: Boolean = true)(using
     strategy: SecretStrategy[T],
     hasher: Hasher
   ): Secret[T] =
-    val underlying: OneShotSecret[T] = OneShotSecret[T](value, collectDestructionLocation)
-    new Secret[T]:
-      override def evalUse[F[_]: MonadSecretError, U](f: T => F[U]): F[U] = underlying.evalUse(f)
-      override def destroy()(using location: Location): Unit              = underlying.destroy()
-      override def destructionLocation: Option[Location]                  = underlying.destructionLocation
-      override def isDestroyed: Boolean                                   = underlying.isDestroyed
-      override def hashed: String                                         = underlying.hashed
-      override def duplicate: Secret[T]                                   = map(identity)
-      override def asOneShot: OneShotSecret[T]                            = underlying
+    new Secret[T](Vault[T](value, collectDestructionLocation)):
+      override def duplicate: Secret[T] = map(identity)
