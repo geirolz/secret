@@ -97,6 +97,27 @@ libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.6"
 import com.geirolz.secret.ciris.given
 ```
 
+#### Circe
+Provides the json `Decoder` instance for `Secret[T]` and `OneShotSecret[T]` type.
+
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret-circe" % "0.0.6"
+```
+```scala
+import com.geirolz.secret.circe.given
+```
+
+#### Cats-xml
+Provides the xml `Decoder` instance for `Secret[T]` and `OneShotSecret[T]` type.
+
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret-cats-xml" % "0.0.6"
+```
+```scala
+import com.geirolz.secret.catsxml.given
+```
+
+
 ## Adopters
 
 If you are using Secret in your company, please let me know and I'll add it to the list! It means a lot to me.
@@ -118,7 +139,7 @@ given SecretStrategy[String] = SecretStrategy[String](
 )
 
 Secret("my_password").euse(secret => secret)
-// res7: Either[SecretDestroyed, String] = Right(value = "CUSTOM")
+// res9: Either[SecretDestroyed, String] = Right(value = "CUSTOM")
 ```
 
 ## Custom Obfuscation Strategy algebra
@@ -141,11 +162,11 @@ val myCustomAlgebra = new SecretStrategyAlgebra:
     
     final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
       DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp8$$anon$6@52112691
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp10$$anon$6@2a24f208
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@e3d25e5
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@422c7da0
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope
@@ -153,13 +174,13 @@ val myCustomStrategyFactory = myCustomAlgebra.newFactory
 import myCustomStrategyFactory.given
 
 Secret("my_password").euse(secret => secret)
-// res9: Either[SecretDestroyed, String] = Right(value = "my_password")
+// res11: Either[SecretDestroyed, String] = Right(value = "my_password")
 
 // or restricted to a specific scope
 myCustomStrategyFactory {
   Secret("my_password").euse(secret => secret)
 }
-// res10: Either[SecretDestroyed, String] = Right(value = "my_password")
+// res12: Either[SecretDestroyed, String] = Right(value = "my_password")
 ```
 
 ## Contributing

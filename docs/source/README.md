@@ -90,6 +90,27 @@ libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "@VERSION@"
 import com.geirolz.secret.ciris.given
 ```
 
+#### Circe
+Provides the json `Decoder` instance for `Secret[T]` and `OneShotSecret[T]` type.
+
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret-circe" % "@VERSION@"
+```
+```scala mdoc:reset
+import com.geirolz.secret.circe.given
+```
+
+#### Cats-xml
+Provides the xml `Decoder` instance for `Secret[T]` and `OneShotSecret[T]` type.
+
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret-cats-xml" % "@VERSION@"
+```
+```scala mdoc:reset
+import com.geirolz.secret.catsxml.given
+```
+
+
 ## Adopters
 
 If you are using Secret in your company, please let me know and I'll add it to the list! It means a lot to me.
