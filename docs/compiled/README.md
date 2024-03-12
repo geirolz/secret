@@ -16,9 +16,11 @@ decision consciously. I'll do my best to improve the security and documentation 
 
 Please, drop a ⭐️ if you are interested in this project and you want to support it.
 
-Scala 3 only, Scala 2 is not supported.
+> [!NOTE]
+> Scala 3 only, Scala 2 is not supported.
+
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.6"
+libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.8"
 ```
 
 ## Obfuscation
@@ -61,7 +63,7 @@ These integrations aim to enhance the functionality and capabilities of `Secret`
 
 #### Cats Effect
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.6"
+libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.8"
 ```
 
 ```scala
@@ -73,7 +75,7 @@ val res: Resource[IO, String] = Secret("password").resource[IO]
 
 #### Pureconfig
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.6"
+libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.8"
 ```
 
 Just provides the `ConfigReader` instance for `Secret[T]` type.
@@ -83,7 +85,7 @@ import com.geirolz.secret.pureconfig.given
 ```
 #### Typesafe Config
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.6"
+libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.8"
 ```
 ```scala
 import com.geirolz.secret.typesafe.config.given
@@ -91,7 +93,7 @@ import com.geirolz.secret.typesafe.config.given
 
 #### Ciris
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.6"
+libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.8"
 ```
 ```scala
 import com.geirolz.secret.ciris.given
@@ -101,7 +103,7 @@ import com.geirolz.secret.ciris.given
 Provides the json `Decoder` instance for `Secret[T]` and `OneShotSecret[T]` type.
 
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-circe" % "0.0.6"
+libraryDependencies += "com.github.geirolz" %% "secret-circe" % "0.0.8"
 ```
 ```scala
 import com.geirolz.secret.circe.given
@@ -111,7 +113,7 @@ import com.geirolz.secret.circe.given
 Provides the xml `Decoder` instance for `Secret[T]` and `OneShotSecret[T]` type.
 
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-cats-xml" % "0.0.6"
+libraryDependencies += "com.github.geirolz" %% "secret-cats-xml" % "0.0.8"
 ```
 ```scala
 import com.geirolz.secret.catsxml.given
@@ -162,11 +164,11 @@ val myCustomAlgebra = new SecretStrategyAlgebra:
     
     final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
       DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp10$$anon$6@2a24f208
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp10$$anon$6@71dbc0e2
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@422c7da0
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@62a0832
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope

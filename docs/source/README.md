@@ -16,7 +16,9 @@ decision consciously. I'll do my best to improve the security and documentation 
 
 Please, drop a ⭐️ if you are interested in this project and you want to support it.
 
-Scala 3 only, Scala 2 is not supported.
+> [!NOTE]
+> Scala 3 only, Scala 2 is not supported.
+
 ```sbt
 libraryDependencies += "com.github.geirolz" %% "secret" % "@VERSION@"
 ```
