@@ -61,6 +61,18 @@ object ProjectDependencies {
         "org.typelevel" %% "munit-cats-effect-3" % munitEffectVersion % Test
       )
     }
+
+    object Circe {
+      lazy val dedicated: Seq[ModuleID] = List(
+        "io.circe" %% "circe-core" % "0.14.6"
+      )
+    }
+
+    object CatsXml {
+      lazy val dedicated: Seq[ModuleID] = List(
+        "com.github.geirolz" %% "cats-xml" % "0.0.15"
+      )
+    }
   }
 
   object Plugins {

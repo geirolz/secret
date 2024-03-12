@@ -34,13 +34,13 @@ lazy val root: Project = project
   .settings(
     copyReadMe := IO.copyFile(file("docs/compiled/README.md"), file("README.md"))
   )
-  .aggregate(core, effect, docs, pureconfig, typesafeConfig, ciris)
+  .aggregate(core, effect, docs, pureconfig, typesafeConfig, ciris, circe, `cats-xml`)
 
 lazy val docs: Project =
   project
     .in(file("docs"))
     .enablePlugins(MdocPlugin)
-    .dependsOn(core, effect, pureconfig, typesafeConfig, ciris)
+    .dependsOn(core, effect, pureconfig, typesafeConfig, ciris, circe, `cats-xml`)
     .settings(
       baseSettings,
       noPublishSettings,
@@ -101,6 +101,24 @@ lazy val ciris: Project =
   ).dependsOn(core)
     .settings(
       libraryDependencies ++= ProjectDependencies.Integrations.Ciris.dedicated
+    )
+
+lazy val circe: Project =
+  module("circe")(
+    folder    = s"$integrationsFolder/circe",
+    publishAs = Some(subProjectName("circe"))
+  ).dependsOn(core)
+    .settings(
+      libraryDependencies ++= ProjectDependencies.Integrations.Circe.dedicated
+    )
+
+lazy val `cats-xml`: Project =
+  module("cats-xml")(
+    folder    = s"$integrationsFolder/cats-xml",
+    publishAs = Some(subProjectName("cats-xml"))
+  ).dependsOn(core)
+    .settings(
+      libraryDependencies ++= ProjectDependencies.Integrations.CatsXml.dedicated
     )
 
 //=============================== MODULES UTILS ===============================
