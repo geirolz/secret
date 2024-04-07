@@ -6,5 +6,3 @@ s1.hashed
 s1.euse(secret => print(secret))
 s1.euseAndDestroy(secret => print(secret))
 s1.euse(secret => print(secret))
-
-
