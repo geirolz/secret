@@ -20,7 +20,7 @@ Please, drop a ⭐️ if you are interested in this project and you want to supp
 > Scala 3 only, Scala 2 is not supported.
 
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.8"
+libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.9"
 ```
 
 ## Obfuscation
@@ -63,7 +63,7 @@ These integrations aim to enhance the functionality and capabilities of `Secret`
 
 #### Cats Effect
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.8"
+libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.9"
 ```
 
 ```scala
@@ -75,7 +75,7 @@ val res: Resource[IO, String] = Secret("password").resource[IO]
 
 #### Pureconfig
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.8"
+libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.9"
 ```
 
 Just provides the `ConfigReader` instance for `Secret[T]` type.
@@ -85,7 +85,7 @@ import com.geirolz.secret.pureconfig.given
 ```
 #### Typesafe Config
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.8"
+libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.9"
 ```
 ```scala
 import com.geirolz.secret.typesafe.config.given
@@ -93,7 +93,7 @@ import com.geirolz.secret.typesafe.config.given
 
 #### Ciris
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.8"
+libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.9"
 ```
 ```scala
 import com.geirolz.secret.ciris.given
@@ -103,7 +103,7 @@ import com.geirolz.secret.ciris.given
 Provides the json `Decoder` instance for `Secret[T]` and `OneShotSecret[T]` type.
 
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-circe" % "0.0.8"
+libraryDependencies += "com.github.geirolz" %% "secret-circe" % "0.0.9"
 ```
 ```scala
 import com.geirolz.secret.circe.given
@@ -113,7 +113,7 @@ import com.geirolz.secret.circe.given
 Provides the xml `Decoder` instance for `Secret[T]` and `OneShotSecret[T]` type.
 
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-cats-xml" % "0.0.8"
+libraryDependencies += "com.github.geirolz" %% "secret-cats-xml" % "0.0.9"
 ```
 ```scala
 import com.geirolz.secret.catsxml.given
