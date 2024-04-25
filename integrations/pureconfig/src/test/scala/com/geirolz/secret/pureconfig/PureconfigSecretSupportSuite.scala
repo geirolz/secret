@@ -1,11 +1,44 @@
 package com.geirolz.secret.pureconfig
 
-import _root_.pureconfig.ConfigReader
+import _root_.pureconfig.{ConfigReader, ConfigSource}
 import _root_.pureconfig.backend.ConfigFactoryWrapper
-import com.geirolz.secret.{OneShotSecret, Secret}
+import com.geirolz.secret.pureconfig.testing.FooWithSecret
+import com.geirolz.secret.pureconfig.given
+import com.geirolz.secret.{OneShotSecret, SPassword, Secret}
 import com.typesafe.config.Config
 
 class PureconfigSecretSupportSuite extends munit.FunSuite:
+
+  test("Read secrets with macro") {
+
+    val config: Config = ConfigFactoryWrapper
+      .parseString(
+        """
+          |{
+          | bar: "bar"
+          | secret: "my-super-secret-password"
+          | one-shot-secret: "my-super-one-shot-secret-password"
+          |}""".stripMargin
+      )
+      .toOption
+      .get
+
+    val result: FooWithSecret = ConfigSource.fromConfig(config).loadOrThrow[FooWithSecret]
+    result.secret.euse(secretValue => {
+      assertEquals(
+        obtained = secretValue,
+        expected = "my-super-secret-password"
+      )
+    })
+
+    result.oneShotSecret.euseAndDestroy(secretValue => {
+      assertEquals(
+        obtained = secretValue,
+        expected = "my-super-one-shot-secret-password"
+      )
+    })
+
+  }
 
   test("Read OneShotSecret string with pureconfig") {
 
