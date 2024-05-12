@@ -14,7 +14,7 @@ object ProjectDependencies {
   private val catsEffectVersion     = "3.5.4"
   private val pureConfigVersion     = "0.17.6"
   private val typesafeConfigVersion = "1.4.3"
-  private val cirisVersion          = "3.5.0"
+  private val cirisVersion          = "3.6.0"
 
   lazy val common: Seq[ModuleID] = Seq(
     // base
