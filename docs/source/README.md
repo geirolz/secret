@@ -196,4 +196,3 @@ Feel free to use it in your open-source or commercial projects.
 - https://westonal.medium.com/protecting-strings-in-jvm-memory-84c365f8f01c
 - VisualVM
 - ChatGPT
-- Personal experience in companies where I worked
