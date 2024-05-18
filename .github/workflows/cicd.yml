@@ -27,23 +27,23 @@ jobs:
       matrix:
         # supported scala versions
         include:
-          - scala: 3.3.1
+          - scala: 3.3.3
             name: Scala3_3
             test-tasks: scalafmtCheck gen-doc coverage test coverageReport
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       #----------- JDK -----------
       - name: Setup JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: "liberica"
           java-version: 17
 
       #----------- CACHE -----------
       - name: Cache SBT
-        uses: actions/cache@v3.2.3
+        uses: actions/cache@v4
         with:
           # A list of files, directories, and wildcard patterns to cache and restore
           path: |
@@ -60,11 +60,9 @@ jobs:
       - name: MiMa Report
         run: sbt ++${{ matrix.scala }} mimaReportBinaryIssues
 
-      #----------- COVERAGE -----------
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        #----------- COVERAGE -----------
+      - name: Upload Coverage to Codacy
+        run: bash <(curl -Ls https://coverage.codacy.com/get.sh)
 
   deploy:
     runs-on: ubuntu-latest
