@@ -15,7 +15,7 @@ import scala.reflect.ClassTag
   * @param algebra
   *   the algebra used to build the [[SecretStrategy]].
   */
-class SecretStrategyFactory private[secret] (algebra: SecretStrategyAlgebra):
+open class SecretStrategyFactory private[secret] (algebra: SecretStrategyAlgebra):
 
   def apply[U](f: SecretStrategyFactory ?=> U): U =
     f(using this)

@@ -116,7 +116,7 @@ private[secret] transparent trait SecretApi[T](protected val vault: Vault[T]) ex
       case Right(u) => u
       case Left(e)  => Secret.destroyed[U](e.destructionLocation)
 
-private[secret] transparent trait SecretCompanionApi[SecretTpe[_] <: SecretApi[_]]
+private[secret] transparent trait SecretCompanionApi[SecretTpe[X] <: SecretApi[X]]
     extends SecretApiSyntax[SecretTpe],
       SecretApiInstances[SecretTpe]:
 
@@ -148,7 +148,7 @@ private[secret] transparent trait SecretCompanionApi[SecretTpe[_] <: SecretApi[_
     apply(value, collectDestructionLocation = false)
 
 /** Syntax for the SecretPlatform */
-private[secret] transparent sealed trait SecretApiSyntax[SecretTpe[_] <: SecretApi[_]]:
+private[secret] transparent sealed trait SecretApiSyntax[SecretTpe[X] <: SecretApi[X]]:
   this: SecretCompanionApi[SecretTpe] =>
 
   extension [T: SecretStrategy: Monoid](optSecret: Option[SecretTpe[T]])(using Hasher)
@@ -160,7 +160,7 @@ private[secret] transparent sealed trait SecretApiSyntax[SecretTpe[_] <: SecretA
       eSecret.toOption.getOrEmptySecret
 
 /** Instances for the SecretPlatform */
-private[secret] transparent sealed trait SecretApiInstances[SecretTpe[_] <: SecretApi[_]]:
+private[secret] transparent sealed trait SecretApiInstances[SecretTpe[X] <: SecretApi[X]]:
 
   given [T]: Hashing[SecretTpe[T]] =
     Hashing.fromFunction(_.hashCode())
