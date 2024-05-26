@@ -7,7 +7,7 @@ object ProjectDependencies {
   private val catsVersion   = "2.10.0"
   private val bcryptVersion = "0.10.2"
   // test
-  private val munitVersion       = "0.7.29"
+  private val munitVersion       = "1.0.0"
   private val munitEffectVersion = "1.0.7"
   private val scalacheck         = "1.18.0"
   // integrations
