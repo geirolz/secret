@@ -4,7 +4,7 @@ import scala.language.postfixOps
 object ProjectDependencies {
 
   // base
-  private val catsVersion   = "2.10.0"
+  private val catsVersion   = "2.12.0"
   private val bcryptVersion = "0.10.2"
   // test
   private val munitVersion       = "0.7.29"
