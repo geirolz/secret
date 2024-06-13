@@ -8,7 +8,7 @@ object ProjectDependencies {
   private val bcryptVersion = "0.10.2"
   // test
   private val munitVersion       = "0.7.29"
-  private val munitEffectVersion = "1.0.7"
+  private val munitEffectVersion = "2.0.0"
   private val scalacheck         = "1.18.0"
   // integrations
   private val catsEffectVersion     = "3.5.4"
@@ -22,11 +22,11 @@ object ProjectDependencies {
     "at.favre.lib"   % "bcrypt"    % bcryptVersion,
 
     // test
-    "org.typelevel"  %% "cats-effect"         % catsEffectVersion  % Test,
-    "org.typelevel"  %% "munit-cats-effect-3" % munitEffectVersion % Test,
-    "org.scalameta"  %% "munit"               % munitVersion       % Test,
-    "org.scalameta"  %% "munit-scalacheck"    % munitVersion       % Test,
-    "org.scalacheck" %% "scalacheck"          % scalacheck         % Test
+    "org.typelevel"  %% "cats-effect"       % catsEffectVersion  % Test,
+    "org.typelevel"  %% "munit-cats-effect" % munitEffectVersion % Test,
+    "org.scalameta"  %% "munit"             % munitVersion       % Test,
+    "org.scalameta"  %% "munit-scalacheck"  % munitVersion       % Test,
+    "org.scalacheck" %% "scalacheck"        % scalacheck         % Test
   )
 
   object Core {
@@ -37,8 +37,8 @@ object ProjectDependencies {
 
     object CatsEffect {
       lazy val dedicated: Seq[ModuleID] = List(
-        "org.typelevel" %% "cats-effect"         % catsEffectVersion,
-        "org.typelevel" %% "munit-cats-effect-3" % munitEffectVersion % Test
+        "org.typelevel" %% "cats-effect"       % catsEffectVersion,
+        "org.typelevel" %% "munit-cats-effect" % munitEffectVersion % Test
       )
     }
 
@@ -56,9 +56,9 @@ object ProjectDependencies {
 
     object Ciris {
       lazy val dedicated: Seq[ModuleID] = List(
-        "is.cir"        %% "ciris"               % cirisVersion,
-        "org.typelevel" %% "cats-effect"         % catsEffectVersion  % Test,
-        "org.typelevel" %% "munit-cats-effect-3" % munitEffectVersion % Test
+        "is.cir"        %% "ciris"             % cirisVersion,
+        "org.typelevel" %% "cats-effect"       % catsEffectVersion  % Test,
+        "org.typelevel" %% "munit-cats-effect" % munitEffectVersion % Test
       )
     }
 
