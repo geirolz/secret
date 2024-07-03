@@ -1,8 +1,8 @@
 # Secret
 
 [![Build Status](https://github.com/geirolz/secret/actions/workflows/cicd.yml/badge.svg)](https://github.com/geirolz/secret/actions)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/db3274b55e0c4031803afb45f58d4413)](https://www.codacy.com/manual/david.geirola/secret?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=geirolz/secret&amp;utm_campaign=Badge_Grade)
 [![Codacy Badge](https://app.codacy.com/project/badge/Coverage/98e66945d71d4486b5cd29966c7690a1)](https://app.codacy.com/gh/geirolz/secret/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/98e66945d71d4486b5cd29966c7690a1)](https://app.codacy.com/gh/geirolz/secret/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![Sonatype Nexus (Releases)](https://img.shields.io/nexus/r/com.github.geirolz/secret_3?server=https%3A%2F%2Foss.sonatype.org)](https://mvnrepository.com/artifact/com.github.geirolz/secret)
 [![Scala Steward badge](https://img.shields.io/badge/Scala_Steward-helping-blue.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII=)](https://scala-steward.org)
 [![Mergify Status](https://img.shields.io/endpoint.svg?url=https://api.mergify.com/v1/badges/geirolz/secret&style=flat)](https://mergify.io)
@@ -20,7 +20,7 @@ Please, drop a ⭐️ if you are interested in this project and you want to supp
 > Scala 3 only, Scala 2 is not supported.
 
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.9"
+libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.10"
 ```
 
 ## Obfuscation
@@ -63,7 +63,7 @@ These integrations aim to enhance the functionality and capabilities of `Secret`
 
 #### Cats Effect
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.9"
+libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.10"
 ```
 
 ```scala
@@ -75,7 +75,7 @@ val res: Resource[IO, String] = Secret("password").resource[IO]
 
 #### Pureconfig
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.9"
+libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.10"
 ```
 
 Just provides the `ConfigReader` instance for `Secret[T]` type.
@@ -85,7 +85,7 @@ import com.geirolz.secret.pureconfig.given
 ```
 #### Typesafe Config
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.9"
+libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.10"
 ```
 ```scala
 import com.geirolz.secret.typesafe.config.given
@@ -93,7 +93,7 @@ import com.geirolz.secret.typesafe.config.given
 
 #### Ciris
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.9"
+libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.10"
 ```
 ```scala
 import com.geirolz.secret.ciris.given
@@ -103,7 +103,7 @@ import com.geirolz.secret.ciris.given
 Provides the json `Decoder` instance for `Secret[T]` and `OneShotSecret[T]` type.
 
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-circe" % "0.0.9"
+libraryDependencies += "com.github.geirolz" %% "secret-circe" % "0.0.10"
 ```
 ```scala
 import com.geirolz.secret.circe.given
@@ -113,7 +113,7 @@ import com.geirolz.secret.circe.given
 Provides the xml `Decoder` instance for `Secret[T]` and `OneShotSecret[T]` type.
 
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-cats-xml" % "0.0.9"
+libraryDependencies += "com.github.geirolz" %% "secret-cats-xml" % "0.0.10"
 ```
 ```scala
 import com.geirolz.secret.catsxml.given
@@ -164,11 +164,11 @@ val myCustomAlgebra = new SecretStrategyAlgebra:
     
     final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
       DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp10$$anon$6@71dbc0e2
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp10$$anon$6@204ae769
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@62a0832
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@24689809
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope
