@@ -1,10 +1,10 @@
-package com.geirolz.secret.circe
+package com.geirolz.secret.circe.hashed
 
-import com.geirolz.secret.{OneShotSecret, Secret, secretTag}
+import com.geirolz.secret.{secretTag, OneShotSecret, Secret}
 import io.circe.Json
 import io.circe.syntax.*
 
-class SecretCirceSuite extends munit.FunSuite:
+class SecretCirceHashedSuite extends munit.FunSuite:
 
   test("Secret should be decoded from json") {
     val json: Json = Json.fromString("secret_value")
@@ -24,12 +24,12 @@ class SecretCirceSuite extends munit.FunSuite:
     val secret: Secret[String] = Secret("secret_value")
     val result: Json           = secret.asJson
 
-    assert(result == Json.fromString(secretTag))
+    assert(result == Json.fromString(secret.hashed))
   }
 
   test("OneShotSecret should be encoded to json") {
     val secret: OneShotSecret[String] = OneShotSecret("secret_value")
-    val result: Json = secret.asJson
+    val result: Json                  = secret.asJson
 
-    assert(result == Json.fromString(secretTag))
+    assert(result == Json.fromString(secret.hashed))
   }
