@@ -6,26 +6,25 @@ lazy val org                    = "com.github.geirolz"
 lazy val scala33                = "3.3.3"
 lazy val supportedScalaVersions = List(scala33)
 
+inThisBuild(
+  List(
+    homepage := Some(url(s"https://github.com/geirolz/$prjName")),
+    licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    developers := List(
+      Developer(
+        "DavidGeirola",
+        "David Geirola",
+        "david.geirola@gmail.com",
+        url("https://github.com/geirolz")
+      )
+    )
+  )
+)
+
 //## global project to no publish ##
 val copyReadMe = taskKey[Unit]("Copy generated README to main folder.")
 lazy val root: Project = project
   .in(file("."))
-  .settings(
-    inThisBuild(
-      List(
-        homepage := Some(url(s"https://github.com/geirolz/$prjName")),
-        licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
-        developers := List(
-          Developer(
-            "DavidGeirola",
-            "David Geirola",
-            "david.geirola@gmail.com",
-            url("https://github.com/geirolz")
-          )
-        )
-      )
-    )
-  )
   .settings(baseSettings)
   .settings(noPublishSettings)
   .settings(
