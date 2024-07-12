@@ -10,6 +10,8 @@ import scala.util.Try
 
 /** Memory-safe and type-safe secret value of type `T`.
   *
+  * A.K.A. `ReusableSecret`
+  *
   * `Secret` does the best to avoid leaking information in memory and in the code BUT an attack is possible and I don't
   * give any certainties or guarantees about security using this class, you use it at your own risk. Code is open
   * source, you can check the implementation and take your decision consciously. I'll do my best to improve the security
@@ -116,8 +118,12 @@ abstract sealed class Secret[T] private (vault: Vault[T]) extends SecretApi[T](v
     evalUse[Try, Boolean](thisValue => that.use[Try, Boolean](_ === thisValue)).getOrElse(false)
 
 object Secret extends SecretCompanionApi[Secret]:
-  export DeferredSecret.apply as defer
-  export DeferredSecret.fromEnv as deferFromEnv
+
+  type OneShot[T] = OneShotSecret[T]
+  final val oneShot = OneShotSecret
+
+  type Deferred[F[_], T] = DeferredSecret[F, T]
+  final val deferred = DeferredSecret
 
   /** Create a destroyed secret */
   override def destroyed[T](location: Location = Location.unknown): Secret[T] =

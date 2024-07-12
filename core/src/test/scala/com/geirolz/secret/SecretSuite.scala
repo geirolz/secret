@@ -47,10 +47,10 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
       )
   }
 
-  test("Secret.deferredFromEnv") {
+  test("Secret.deferred.fromEnv") {
     given SysEnv[Try] = SysEnv.fromMap[Try](Map("TEST" -> "VALUE"))
-    Secret
-      .deferFromEnv[Try]("TEST")
+    Secret.deferred
+      .fromEnv[Try]("TEST")
       .use(value =>
         assertEquals(
           obtained = value,

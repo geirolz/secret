@@ -179,7 +179,6 @@ val myCustomAlgebra = new SecretStrategyAlgebra:
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
 // myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@1ffbad11
 
-
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope
 
