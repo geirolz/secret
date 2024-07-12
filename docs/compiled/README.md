@@ -79,7 +79,7 @@ val res: Resource[IO, String] = s.resource[IO]
 val res2: Resource[IO, String] = s.resourceDestroy[IO]
 
 // this will destroy the secret because it uses the original one
-val res3 = Secret.resource[IO, String]("password")
+val res3: Resource[IO, String] = Secret.resource[IO, String]("password")
 ```
 
 #### Pureconfig
@@ -173,11 +173,11 @@ val myCustomAlgebra = new SecretStrategyAlgebra:
     
     final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
       DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp10$$anon$9@d2f29c8
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp10$$anon$9@55a1c811
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@5a05cd05
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@1ffbad11
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope
