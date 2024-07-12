@@ -72,7 +72,7 @@ val res: Resource[IO, String] = s.resource[IO]
 val res2: Resource[IO, String] = s.resourceDestroy[IO]
 
 // this will destroy the secret because it uses the original one
-val res3 = Secret.resource[IO, String]("password")
+val res3: Resource[IO, String] = Secret.resource[IO, String]("password")
 ```
 
 #### Pureconfig
