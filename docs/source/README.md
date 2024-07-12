@@ -63,7 +63,16 @@ libraryDependencies += "com.github.geirolz" %% "secret-effect" % "@VERSION@"
 import com.geirolz.secret.*
 import cats.effect.{IO, Resource}
 
-val res: Resource[IO, String] = Secret("password").resource[IO]
+val s: Secret[String] = Secret("password")
+
+// !!!! this will not destroy the secret because it uses a duplicated one !!!
+val res: Resource[IO, String] = s.resource[IO]
+
+// this will destroy the secret because it uses the original one
+val res2: Resource[IO, String] = s.resourceDestroy[IO]
+
+// this will destroy the secret because it uses the original one
+val res3 = Secret.resource[IO, String]("password")
 ```
 
 #### Pureconfig
