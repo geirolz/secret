@@ -20,7 +20,7 @@ Please, drop a ⭐️ if you are interested in this project and you want to supp
 > Scala 3 only, Scala 2 is not supported.
 
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.10"
+libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.11"
 ```
 
 ## Obfuscation
@@ -63,19 +63,28 @@ These integrations aim to enhance the functionality and capabilities of `Secret`
 
 #### Cats Effect
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.10"
+libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.11"
 ```
 
 ```scala
 import com.geirolz.secret.*
 import cats.effect.{IO, Resource}
 
-val res: Resource[IO, String] = Secret("password").resource[IO]
+val s: Secret[String] = Secret("password")
+
+// !!!! this will not destroy the secret because it uses a duplicated one !!!
+val res: Resource[IO, String] = s.resource[IO]
+
+// this will destroy the secret because it uses the original one
+val res2: Resource[IO, String] = s.resourceDestroy[IO]
+
+// this will destroy the secret because it uses the original one
+val res3 = Secret.resource[IO, String]("password")
 ```
 
 #### Pureconfig
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.10"
+libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.11"
 ```
 
 Just provides the `ConfigReader` instance for `Secret[T]` type.
@@ -85,7 +94,7 @@ import com.geirolz.secret.pureconfig.given
 ```
 #### Typesafe Config
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.10"
+libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.11"
 ```
 ```scala
 import com.geirolz.secret.typesafe.config.given
@@ -93,7 +102,7 @@ import com.geirolz.secret.typesafe.config.given
 
 #### Ciris
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.10"
+libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.11"
 ```
 ```scala
 import com.geirolz.secret.ciris.given
@@ -103,7 +112,7 @@ import com.geirolz.secret.ciris.given
 Provides the json `Decoder` instance for `Secret[T]` and `OneShotSecret[T]` type.
 
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-circe" % "0.0.10"
+libraryDependencies += "com.github.geirolz" %% "secret-circe" % "0.0.11"
 ```
 ```scala
 import com.geirolz.secret.circe.given
@@ -113,7 +122,7 @@ import com.geirolz.secret.circe.given
 Provides the xml `Decoder` instance for `Secret[T]` and `OneShotSecret[T]` type.
 
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-cats-xml" % "0.0.10"
+libraryDependencies += "com.github.geirolz" %% "secret-cats-xml" % "0.0.11"
 ```
 ```scala
 import com.geirolz.secret.catsxml.given
@@ -164,11 +173,11 @@ val myCustomAlgebra = new SecretStrategyAlgebra:
     
     final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
       DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp10$$anon$6@204ae769
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp10$$anon$9@d2f29c8
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@24689809
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@5a05cd05
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope
