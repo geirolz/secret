@@ -4,7 +4,7 @@ import cats.effect.{Async, Resource}
 
 // one shot secret
 extension [T](secret: OneShotSecret[T])
-  inline def resource[F[_]](using F: Async[F]): Resource[F, T] =
+  inline def resourceDestroy[F[_]](using F: Async[F]): Resource[F, T] =
     Resource
       .fromAutoCloseable(F.delay(secret))
       .evalMap(_.accessValue[F])
@@ -14,6 +14,11 @@ extension [T](secret: Secret[T])
   inline def resource[F[_]](using F: Async[F]): Resource[F, T] =
     Resource
       .fromAutoCloseable(F.defer(F.delay(secret.duplicate)))
+      .evalMap(_.accessValue[F])
+
+  inline def resourceDestroy[F[_]](using F: Async[F]): Resource[F, T] =
+    Resource
+      .fromAutoCloseable(F.defer(F.delay(secret)))
       .evalMap(_.accessValue[F])
 
 // deferred secret
