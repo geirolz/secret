@@ -70,7 +70,7 @@ object ProjectDependencies {
 
     object CatsXml {
       lazy val dedicated: Seq[ModuleID] = List(
-        "com.github.geirolz" %% "cats-xml" % "0.0.15"
+        "com.github.geirolz" %% "cats-xml" % "0.0.18"
       )
     }
   }
