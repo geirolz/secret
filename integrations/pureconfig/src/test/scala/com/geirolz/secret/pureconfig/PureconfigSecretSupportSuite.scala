@@ -4,7 +4,7 @@ import _root_.pureconfig.{ConfigReader, ConfigSource}
 import _root_.pureconfig.backend.ConfigFactoryWrapper
 import com.geirolz.secret.pureconfig.testing.FooWithSecret
 import com.geirolz.secret.pureconfig.given
-import com.geirolz.secret.{OneShotSecret, SPassword, Secret}
+import com.geirolz.secret.Secret
 import com.typesafe.config.Config
 
 class PureconfigSecretSupportSuite extends munit.FunSuite:
@@ -52,8 +52,8 @@ class PureconfigSecretSupportSuite extends munit.FunSuite:
       .toOption
       .get
 
-    val result: ConfigReader.Result[OneShotSecret[String]] =
-      summon[ConfigReader[OneShotSecret[String]]]
+    val result: ConfigReader.Result[Secret.OneShot[String]] =
+      summon[ConfigReader[Secret.OneShot[String]]]
         .from(config.getValue("conf.secret-value"))
 
     assert(

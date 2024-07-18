@@ -1,19 +1,17 @@
 package com.geirolz.secret.ciris
 
-import com.geirolz.secret.{OneShotSecret, Secret}
-
-import scala.util.Try
 import cats.effect.IO
 import ciris.ConfigValue
+import com.geirolz.secret.Secret
 
 class CirisSecretSupportSuite extends munit.CatsEffectSuite:
 
   test("Read OneShotSecret string with ciris") {
 
-    val result: IO[OneShotSecret[String]] =
+    val result: IO[Secret.OneShot[String]] =
       ConfigValue
         .default("my-super-secret-password")
-        .as[OneShotSecret[String]]
+        .as[Secret.OneShot[String]]
         .load[IO]
 
     assertIO_(

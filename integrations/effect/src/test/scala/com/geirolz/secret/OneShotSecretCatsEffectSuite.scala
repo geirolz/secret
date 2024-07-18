@@ -6,7 +6,7 @@ class OneShotSecretCatsEffectSuite extends munit.CatsEffectSuite:
 
   test("OneShotSecret should be usable as a resourceDestroy") {
 
-    val secret1: OneShotSecret[String] = OneShotSecret("password")
+    val secret1: Secret.OneShot[String] = Secret.oneShot("password")
 
     val test1: IO[Unit] =
       secret1

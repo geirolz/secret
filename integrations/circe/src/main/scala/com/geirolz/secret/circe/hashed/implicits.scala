@@ -2,7 +2,7 @@ package com.geirolz.secret.circe.hashed
 
 import com.geirolz.secret.internal.SecretApi
 import com.geirolz.secret.strategy.SecretStrategy
-import com.geirolz.secret.{OneShotSecret, Secret}
+import com.geirolz.secret.Secret
 import io.circe.{Decoder, Encoder}
 
 export com.geirolz.secret.circe.given_Decoder_Secret

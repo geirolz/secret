@@ -1,12 +1,11 @@
 package com.geirolz.secret
 
-import cats.MonadThrow
 import cats.effect.{Async, Resource}
 import com.geirolz.secret.strategy.SecretStrategy
 import com.geirolz.secret.util.Hasher
 
 // one shot secret
-extension [T](secret: OneShotSecret[T])
+extension [T](secret: Secret.OneShot[T])
   inline def resourceDestroy[F[_]](using F: Async[F]): Resource[F, T] =
     Resource
       .fromAutoCloseable(F.delay(secret))
@@ -33,7 +32,7 @@ extension (obj: Secret.type)
     Secret(secret).resourceDestroy[F]
 
 // deferred secret
-extension [F[_], T](secret: DeferredSecret[F, T])(using F: Async[F])
+extension [F[_], T](secret: Secret.Deferred[F, T])(using F: Async[F])
   inline def resource: Resource[F, T] =
     Resource
       .make(secret.acquire)(s => F.delay(s.destroy()))

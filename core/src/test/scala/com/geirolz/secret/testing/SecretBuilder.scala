@@ -1,6 +1,6 @@
 package com.geirolz.secret.testing
 
-import com.geirolz.secret.{OneShotSecret, Secret}
+import com.geirolz.secret.Secret
 import com.geirolz.secret.internal.SecretApi
 import com.geirolz.secret.strategy.SecretStrategy
 import com.geirolz.secret.util.Hasher
@@ -21,10 +21,10 @@ object SecretBuilder:
         hasher: Hasher
       ): Secret[T] = Secret(value, collectDestructionLocation)
 
-  val oneShotSecret: SecretBuilder[OneShotSecret] =
-    new SecretBuilder[OneShotSecret]:
+  val oneShotSecret: SecretBuilder[Secret.OneShot] =
+    new SecretBuilder[Secret.OneShot]:
       override val name: String = "OneShotSecret"
       override def apply[T](value: => T, collectDestructionLocation: Boolean = true)(using
         strategy: SecretStrategy[T],
         hasher: Hasher
-      ): OneShotSecret[T] = OneShotSecret(value, collectDestructionLocation)
+      ): Secret.OneShot[T] = Secret.oneShot(value, collectDestructionLocation)

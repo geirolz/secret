@@ -1,6 +1,6 @@
 package com.geirolz.secret.circe
 
-import com.geirolz.secret.{OneShotSecret, Secret, secretTag}
+import com.geirolz.secret.{secretTag, Secret}
 import io.circe.Json
 import io.circe.syntax.*
 
@@ -13,9 +13,9 @@ class SecretCirceSuite extends munit.FunSuite:
     result.toOption.get.euseAndDestroy(v => assert(v == "secret_value"))
   }
 
-  test("OneShotSecret should be decoded from json") {
+  test("Secret.OneShot should be decoded from json") {
     val json   = Json.fromString("secret_value")
-    val result = json.as[OneShotSecret[String]]
+    val result = json.as[Secret.OneShot[String]]
 
     result.toOption.get.euseAndDestroy(v => assert(v == "secret_value"))
   }
@@ -27,9 +27,9 @@ class SecretCirceSuite extends munit.FunSuite:
     assert(result == Json.fromString(secretTag))
   }
 
-  test("OneShotSecret should be encoded to json") {
-    val secret: OneShotSecret[String] = OneShotSecret("secret_value")
-    val result: Json = secret.asJson
+  test("Secret.OneShot should be encoded to json") {
+    val secret: Secret.OneShot[String] = Secret.oneShot("secret_value")
+    val result: Json                   = secret.asJson
 
     assert(result == Json.fromString(secretTag))
   }

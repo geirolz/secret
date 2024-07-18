@@ -91,9 +91,9 @@ abstract sealed class Secret[T] private (vault: Vault[T]) extends SecretApi[T](v
   final def flatMap[U: SecretStrategy](f: T => Secret[U])(using Hasher): Secret[U] =
     transform(_.euse(f))
 
-  /** [[OneShotSecret]] version of this secret */
-  final def asOneShot: OneShotSecret[T] =
-    new OneShotSecret(vault)
+  /** [[Secret.OneShot]] version of this secret */
+  final def asOneShot: Secret.OneShot[T] =
+    Secret.oneShot.fromVault(vault)
 
   /** Apply `f` with the de-obfuscated value WITHOUT destroying it.
     *

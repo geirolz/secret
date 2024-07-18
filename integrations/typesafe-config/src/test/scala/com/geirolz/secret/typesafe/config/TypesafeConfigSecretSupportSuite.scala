@@ -1,6 +1,6 @@
 package com.geirolz.secret.typesafe.config
 
-import com.geirolz.secret.{OneShotSecret, Secret}
+import com.geirolz.secret.Secret
 import com.typesafe.config.{Config, ConfigFactory}
 
 class TypesafeConfigSecretSupportSuite extends munit.FunSuite:
@@ -14,7 +14,7 @@ class TypesafeConfigSecretSupportSuite extends munit.FunSuite:
           |}""".stripMargin
     )
 
-    val result: OneShotSecret[String] = config.getOneShotSecret[String]("conf.secret-value")
+    val result: Secret.OneShot[String] = config.getOneShotSecret[String]("conf.secret-value")
 
     assert(
       result
