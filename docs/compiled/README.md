@@ -23,6 +23,20 @@ Please, drop a ⭐️ if you are interested in this project and you want to supp
 libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.11"
 ```
 
+## Usage
+
+```scala
+import com.geirolz.secret.*
+ import scala.util.Try
+
+ val reusableSecret: Secret[String]  = Secret("password") // reusable secret
+// reusableSecret: Secret[String] = ** SECRET **
+ val oneShotSecret: Secret.OneShot[String] = Secret.oneShot("password") // one shot secret
+// oneShotSecret: OneShotSecret[String] = ** SECRET **
+ val deferredSecret: Secret.Deferred[Try, String] = Secret.deferred(Try("password")) // deferred secret
+// deferredSecret: DeferredSecret[[T >: Nothing <: Any] => Try[T], String] = com.geirolz.secret.DeferredSecret$$anon$1@2ed6f149
+```
+
 ## Obfuscation
 
 By default the value is obfuscated when creating the `Secret` instance using the implicit `SecretStrategy` which, by default, transform the value into a xor-ed
@@ -52,8 +66,8 @@ val database: Either[SecretDestroyed, Database] = secretString.euseAndDestroy(pa
 
 // if you try to access the secret value once used, you'll get an error
 secretString.euse(println(_))
-// res1: Either[SecretDestroyed, Unit] = Left(
-//   value = SecretDestroyed(destructionLocation = README.md:25:113)
+// res2: Either[SecretDestroyed, Unit] = Left(
+//   value = SecretDestroyed(destructionLocation = README.md:50:113)
 // )
 ```
 
@@ -150,7 +164,7 @@ given SecretStrategy[String] = SecretStrategy[String](
 )
 
 Secret("my_password").euse(secret => secret)
-// res9: Either[SecretDestroyed, String] = Right(value = "CUSTOM")
+// res10: Either[SecretDestroyed, String] = Right(value = "CUSTOM")
 ```
 
 ## Custom Obfuscation Strategy algebra
@@ -173,11 +187,11 @@ val myCustomAlgebra = new SecretStrategyAlgebra:
     
     final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
       DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp10$$anon$9@55a1c811
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp11$$anon$12@6512f34b
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@1ffbad11
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@5be15840
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope
@@ -185,13 +199,13 @@ val myCustomStrategyFactory = myCustomAlgebra.newFactory
 import myCustomStrategyFactory.given
 
 Secret("my_password").euse(secret => secret)
-// res11: Either[SecretDestroyed, String] = Right(value = "my_password")
+// res12: Either[SecretDestroyed, String] = Right(value = "my_password")
 
 // or restricted to a specific scope
 myCustomStrategyFactory {
   Secret("my_password").euse(secret => secret)
 }
-// res12: Either[SecretDestroyed, String] = Right(value = "my_password")
+// res13: Either[SecretDestroyed, String] = Right(value = "my_password")
 ```
 
 ## Contributing

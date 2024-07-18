@@ -23,6 +23,17 @@ Please, drop a ⭐️ if you are interested in this project and you want to supp
 libraryDependencies += "com.github.geirolz" %% "secret" % "@VERSION@"
 ```
 
+## Usage
+
+```scala mdoc:reset
+ import com.geirolz.secret.*
+ import scala.util.Try
+
+ val reusableSecret: Secret[String]  = Secret("password") // reusable secret
+ val oneShotSecret: Secret.OneShot[String] = Secret.oneShot("password") // one shot secret
+ val deferredSecret: Secret.Deferred[Try, String] = Secret.deferred(Try("password")) // deferred secret
+```
+
 ## Obfuscation
 
 By default the value is obfuscated when creating the `Secret` instance using the implicit `SecretStrategy` which, by default, transform the value into a xor-ed
