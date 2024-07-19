@@ -43,7 +43,7 @@ private[secret] object Vault:
     )
 
     // do not use value inside the secret to avoid closure
-    new Vault[T] {
+    val vault = new Vault[T] {
 
       private var _destructionLocation: Option[Location] = None
 
@@ -72,3 +72,10 @@ private[secret] object Vault:
         else
           BytesUtils.asString(hashedValue.value)
     }
+
+    // clear the value when runtime shutdown
+    Runtime.getRuntime.addShutdownHook(new Thread {
+      override def run(): Unit = vault.destroy()
+    })
+
+    vault
