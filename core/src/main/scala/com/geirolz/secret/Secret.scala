@@ -1,9 +1,10 @@
 package com.geirolz.secret
 
-import cats.{Eq, MonadThrow}
+import cats.Eq
 import com.geirolz.secret.Secret.*
 import com.geirolz.secret.internal.{SecretApi, SecretCompanionApi, Vault}
 import com.geirolz.secret.strategy.SecretStrategy
+import com.geirolz.secret.transform.Hasher
 import com.geirolz.secret.util.*
 
 import scala.util.Try
@@ -41,6 +42,9 @@ abstract sealed class Secret[T] private (vault: Vault[T]) extends SecretApi[T](v
 
   import cats.syntax.all.*
 
+  type Self[X] = Secret[X]
+  private[secret] val companion: SecretCompanionApi[Self] = Secret
+
   /** Duplicate the secret without destroying it.
     *
     * If this was destroyed the duplicated will also be destroyed.
@@ -71,8 +75,8 @@ abstract sealed class Secret[T] private (vault: Vault[T]) extends SecretApi[T](v
     *  secretString.isDestroyed // false
     * }}}
     */
-  final def map[U: SecretStrategy](f: T => U)(using Hasher): Secret[U] =
-    transform(_.euse(f.andThen(Secret[U](_))))
+  final def map[U: SecretStrategy](f: T => U): Secret[U] =
+    transform(_.euse(f.andThen(newFromThis(_))))
 
   /** flat map the value using the specified function.
     *
@@ -88,7 +92,7 @@ abstract sealed class Secret[T] private (vault: Vault[T]) extends SecretApi[T](v
     *  secretString.isDestroyed // false
     * }}}
     */
-  final def flatMap[U: SecretStrategy](f: T => Secret[U])(using Hasher): Secret[U] =
+  final def flatMap[U: SecretStrategy](f: T => Secret[U]): Secret[U] =
     transform(_.euse(f))
 
   /** [[Secret.OneShot]] version of this secret */
@@ -119,6 +123,8 @@ abstract sealed class Secret[T] private (vault: Vault[T]) extends SecretApi[T](v
 
 object Secret extends SecretCompanionApi[Secret]:
 
+  private[secret] given SecretCompanionApi[Secret] = this
+
   type OneShot[T] = OneShotSecret[T]
   final val oneShot = OneShotSecret
 
@@ -131,9 +137,9 @@ object Secret extends SecretCompanionApi[Secret]:
       override def duplicate: Secret[T] = this
 
   /** Create a secret from the given value */
-  override def apply[T](value: => T, collectDestructionLocation: Boolean = true)(using
+  override def apply[T](value: => T, recDestructionLocation: Boolean = true)(using
     strategy: SecretStrategy[T],
     hasher: Hasher
   ): Secret[T] =
-    new Secret[T](Vault[T](value, collectDestructionLocation)):
+    new Secret[T](Vault[T](value, recDestructionLocation)):
       override def duplicate: Secret[T] = map(identity)

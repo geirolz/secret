@@ -1,11 +1,11 @@
-package com.geirolz.secret.catsxml.hashed
+package com.geirolz.secret.catsxml.hash
 
 import cats.xml.codec.Decoder.Result
 import cats.xml.syntax.*
 import cats.xml.{Xml, XmlData}
 import com.geirolz.secret.{secretTag, Secret}
 
-class SecretCatsXmlHashedSuite extends munit.FunSuite:
+class SecretCatsXmlHashSuite extends munit.FunSuite:
 
   test("Secret should be decoded from xml") {
     val xml: XmlData.XmlString         = Xml.string("secret_value")
@@ -25,12 +25,12 @@ class SecretCatsXmlHashedSuite extends munit.FunSuite:
     val secret: Secret[String] = Secret("secret_value")
     val result: Xml            = secret.toXml
 
-    assert(result == Xml.string(secret.hashed))
+    assert(result == Xml.string(secret.hash))
   }
 
   test("Secret.OneShot should be encoded to json") {
     val secret: Secret.OneShot[String] = Secret.oneShot("secret_value")
     val result: Xml                    = secret.toXml
 
-    assert(result == Xml.string(secret.hashed))
+    assert(result == Xml.string(secret.hash))
   }

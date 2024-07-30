@@ -1,7 +1,7 @@
 package com.geirolz.secret.strategy
 
 import com.geirolz.secret.strategy.SecretStrategy.{DeObfuscator, Obfuscator}
-import com.geirolz.secret.{strategy, PlainValueBuffer}
+import com.geirolz.secret.{PlainValueBuffer, strategy}
 
 import java.nio.ByteBuffer
 import java.nio.charset.Charset

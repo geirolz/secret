@@ -1,9 +1,10 @@
 package com.geirolz.secret
 
-import cats.{Eval, Functor, MonadThrow}
+import cats.MonadThrow
 import cats.syntax.all.*
-import com.geirolz.secret.util.{Hasher, Location}
 import com.geirolz.secret.strategy.SecretStrategy
+import com.geirolz.secret.transform.Hasher
+import com.geirolz.secret.util.Location
 
 /** Specialized version of `Secret` that allows to defer the acquisition of the secret value. This is useful when you
   * want to acquire the secret value only when it's needed and not before ( for instance, an HTTP call to a secret

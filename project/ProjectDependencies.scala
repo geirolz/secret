@@ -33,6 +33,13 @@ object ProjectDependencies {
     lazy val dedicated: Seq[ModuleID] = Nil
   }
 
+  object Modules {
+    object Encrypt {
+      lazy val dedicated: Seq[ModuleID] = List(
+      )
+    }
+  }
+
   object Integrations {
 
     object CatsEffect {

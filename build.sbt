@@ -33,7 +33,7 @@ lazy val root: Project = project
   .settings(
     copyReadMe := IO.copyFile(file("docs/compiled/README.md"), file("README.md"))
   )
-  .aggregate(core, effect, docs, pureconfig, typesafeConfig, ciris, circe, `cats-xml`)
+  .aggregate(core, encrypt, effect, docs, pureconfig, typesafeConfig, ciris, circe, `cats-xml`)
 
 lazy val docs: Project =
   project
@@ -63,6 +63,17 @@ lazy val core: Project =
   ).settings(
     libraryDependencies ++= ProjectDependencies.Core.dedicated
   )
+
+// modules
+lazy val modulesFolder: String = "./modules"
+lazy val encrypt: Project =
+  module("encrypt")(
+    folder    = s"$modulesFolder/encrypt",
+    publishAs = Some(subProjectName("encrypt"))
+  ).dependsOn(core)
+    .settings(
+      libraryDependencies ++= ProjectDependencies.Modules.Encrypt.dedicated
+    )
 
 // integrations
 lazy val integrationsFolder: String = "./integrations"
