@@ -2,7 +2,8 @@ package com.geirolz.secret
 
 import cats.Eq
 import com.geirolz.secret.strategy.{SecretStrategy, SecretStrategyFactory}
-import com.geirolz.secret.util.{Hasher, SysEnv}
+import com.geirolz.secret.transform.Hasher
+import com.geirolz.secret.util.SysEnv
 import org.scalacheck.Arbitrary
 import org.scalacheck.Prop.forAll
 
@@ -59,9 +60,9 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
       )
   }
 
-  test("Secret.noLocation") {
+  test("Secret without recDestructionLocation") {
 
-    val secret = Secret.noLocation("TEST")
+    val secret = Secret("TEST", recDestructionLocation = false)
     secret.destroy()
 
     assertEquals(

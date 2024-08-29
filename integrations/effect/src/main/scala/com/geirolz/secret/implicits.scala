@@ -2,7 +2,9 @@ package com.geirolz.secret
 
 import cats.effect.{Async, Resource}
 import com.geirolz.secret.strategy.SecretStrategy
-import com.geirolz.secret.util.Hasher
+import com.geirolz.secret.transform.Hasher
+
+import scala.annotation.targetName
 
 // one shot secret
 extension [T](secret: Secret.OneShot[T])
@@ -28,7 +30,8 @@ extension [T](secret: Secret[T])
       .evalMap(_.accessValue[F])
 
 extension (obj: Secret.type)
-  def resource[F[_]: Async, T: SecretStrategy](secret: T)(using Hasher): Resource[F, T] =
+  @targetName("SecretResource")
+  def resource[F[_]: Async, T: SecretStrategy](secret: T)(using DummyImplicit, Hasher): Resource[F, T] =
     Secret(secret).resourceDestroy[F]
 
 // deferred secret

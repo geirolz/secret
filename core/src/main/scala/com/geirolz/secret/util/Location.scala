@@ -2,7 +2,6 @@ package com.geirolz.secret.util
 
 import cats.Show
 
-import scala.quoted.{Expr, Quotes}
 import scala.quoted.*
 
 class Location(

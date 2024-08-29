@@ -2,15 +2,23 @@ package com.geirolz.secret.internal
 
 import cats.syntax.all.*
 import cats.{Eq, MonadThrow, Monoid, Show}
-import com.geirolz.secret.strategy.SecretStrategy
-import com.geirolz.secret.util.{Hasher, Location, SysEnv}
 import com.geirolz.secret.*
+import com.geirolz.secret.strategy.SecretStrategy
+import com.geirolz.secret.transform.Hasher
+import com.geirolz.secret.util.{Location, SysEnv}
 
+import java.nio.charset.{Charset, StandardCharsets}
 import scala.util.hashing.Hashing
 
-private[secret] transparent trait SecretApi[T](protected val vault: Vault[T]) extends AutoCloseable:
+private[secret] transparent trait SecretApi[T](
+  protected val vault: Vault[T]
+) extends AutoCloseable:
 
   import cats.syntax.all.*
+
+  type Self[X] <: SecretApi[X]
+
+  private[secret] val companion: SecretCompanionApi[[X] =>> Self[X]]
 
   /** Destroy the secret value by filling the obfuscated value with '\0'.
     *
@@ -61,35 +69,61 @@ private[secret] transparent trait SecretApi[T](protected val vault: Vault[T]) ex
     }
 
   // ---------------- TRANSFORMATIONS METHODS ----------------
-
-  /** map the value using the specified function and then destroy this.
+  /** Creates a new secret mapping the value using the specified function and then destroy this.
     *
     * If the secret were destroyed it will raise a `SecretDestroyed` when you try to use the new secret.
     */
-  final def mapAndDestroy[U: SecretStrategy](f: T => U)(using Location, Hasher): Secret[U] =
-    transform(_.useAndDestroy(f.andThen(Secret[U](_))))
+  def mapAndDestroy[U: SecretStrategy](f: T => U)(using Location): Self[U] =
+    transform(
+      _.euseAndDestroy(
+        f.andThen(newFromThis(_))
+      )
+    )
 
-  /** flat map the value using the specified function and then destroy this.
+  /** Flat map the value using the specified function and then destroy this and returns the new Secret returned by the
+    * specified function.
     *
     * If the secret were destroyed it will raise a `SecretDestroyed` when you try to use the new secret.
     */
-  final def flatMapAndDestroy[U: SecretStrategy](f: T => Secret[U])(using Location, Hasher): Secret[U] =
+  final def flatMapAndDestroy[U: SecretStrategy](f: T => Self[U])(using Location): Self[U] =
     transform(_.useAndDestroy(f))
 
-  // ---------------- DATA ----------------
+  /** Creates a new secret that contains the hashed value of the secret and destroy the current one.
+    *
+    * The secret value is hashed using the specified `hasher` and `charset`.
+    *
+    * By default the charset is `StandardCharsets.UTF_8` and the hasher is the one used by the secret.
+    *
+    * If the secret were destroyed it will raise a `SecretDestroyed` when you try to use the new secret.
+    *
+    * @param hasher
+    *   the hasher to use
+    * @param charset
+    *   the charset to use
+    */
+  final def asHashedAndDestroy(
+    hasher: Hasher   = vault._hasher,
+    charset: Charset = StandardCharsets.UTF_8
+  ): Self[String] =
+    flatMapAndDestroy[String] { v =>
+      newFromThis(
+        hasher.hashAsString(v.toString.getBytes(charset))
+      )
+    }
 
+  // ---------------- DATA ----------------
   /** @return
     *   a hashed representation of the secret value
     */
-  final def hashed: String = vault.hashed
+  final def hash: String = vault.hash
 
-  /** Safely compare the hashed value of this secret with the provided `Secret`. */
-  inline def isHashedEquals(that: Secret[T]): Boolean =
-    hashed == that.hashed
+  /** Safely compare the hash value of this secret with the provided `Secret`. */
+  inline def isHashEquals(that: Secret[T]): Boolean =
+    hash == that.hash
 
   /** Always returns `false` to prevents leaking information.
     *
-    * Use [[isHashedEquals]] or [[isValueEquals]]
+    * Use [[isHashEquals]] or [[isValueEquals]]
     */
   inline final override def equals(obj: Any): Boolean = false
 
@@ -111,10 +145,18 @@ private[secret] transparent trait SecretApi[T](protected val vault: Vault[T]) ex
     vault.evalUse[F, T](_.pure[F])
 
   /** Transform this secret */
-  private[secret] def transform[U](t: this.type => Either[SecretDestroyed, Secret[U]]): Secret[U] =
-    t(this) match
+  private[secret] def transform[U](t: Self[T] => Either[SecretDestroyed, Self[U]]): Self[U] =
+    t(this.asInstanceOf[Self[T]]) match
       case Right(u) => u
-      case Left(e)  => Secret.destroyed[U](e.destructionLocation)
+      case Left(e)  => companion.destroyed[U](e.destructionLocation)
+
+  /** Create a new secret from this Secret settings */
+  private[secret] def newFromThis[U: SecretStrategy](value: U): Self[U] =
+    given Hasher = vault._hasher
+    companion[U](
+      value                  = value,
+      recDestructionLocation = vault._recDestructionLocation
+    )
 
 private[secret] transparent trait SecretCompanionApi[SecretTpe[X] <: SecretApi[X]]
     extends SecretApiSyntax[SecretTpe],
@@ -124,7 +166,7 @@ private[secret] transparent trait SecretCompanionApi[SecretTpe[X] <: SecretApi[X
   def destroyed[T](location: Location = Location.unknown): SecretTpe[T]
 
   /** Create a secret from the given value. */
-  def apply[T](value: => T, collectDestructionLocation: Boolean = true)(using
+  def apply[T](value: => T, recDestructionLocation: Boolean = true)(using
     strategy: SecretStrategy[T],
     hasher: Hasher
   ): SecretTpe[T]
@@ -142,10 +184,6 @@ private[secret] transparent trait SecretCompanionApi[SecretTpe[X] <: SecretApi[X
       .getEnv(name)
       .flatMap(_.liftTo[F](new NoSuchElementException(s"Missing environment variable [$name]")))
       .map(apply(_))
-
-  /** Create a new secret with the given value without collecting the destruction location */
-  def noLocation[T: SecretStrategy](value: => T)(using Hasher): SecretTpe[T] =
-    apply(value, collectDestructionLocation = false)
 
 /** Syntax for the SecretPlatform */
 private[secret] transparent sealed trait SecretApiSyntax[SecretTpe[X] <: SecretApi[X]]:

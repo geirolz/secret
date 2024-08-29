@@ -1,8 +1,6 @@
 package com.geirolz.secret
 
 import cats.MonadError
-import com.geirolz.secret.strategy.SecretStrategy
-import com.geirolz.secret.util.Hasher
 
 import java.nio.ByteBuffer
 
