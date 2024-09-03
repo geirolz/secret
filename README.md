@@ -20,7 +20,7 @@ Please, drop a ⭐️ if you are interested in this project and you want to supp
 > Scala 3 only, Scala 2 is not supported.
 
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.11"
+libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.14"
 ```
 
 ## Usage
