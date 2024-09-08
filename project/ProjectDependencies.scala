@@ -71,7 +71,7 @@ object ProjectDependencies {
 
     object Circe {
       lazy val dedicated: Seq[ModuleID] = List(
-        "io.circe" %% "circe-core" % "0.14.9"
+        "io.circe" %% "circe-core" % "0.14.10"
       )
     }
 
