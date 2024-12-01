@@ -12,7 +12,7 @@ object ProjectDependencies {
   private val scalacheck         = "1.18.1"
   // integrations
   private val catsEffectVersion     = "3.5.6"
-  private val pureConfigVersion     = "0.17.7"
+  private val pureConfigVersion     = "0.17.8"
   private val typesafeConfigVersion = "1.4.3"
   private val cirisVersion          = "3.6.0"
 
