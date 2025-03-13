@@ -3,7 +3,7 @@ import sbt.project
 lazy val prjName                = "secret"
 lazy val prjDescription         = "A functional, type-safe and memory-safe class to handle secret values"
 lazy val org                    = "com.github.geirolz"
-lazy val scala33                = "3.3.4"
+lazy val scala33                = "3.3.5"
 lazy val supportedScalaVersions = List(scala33)
 
 inThisBuild(
