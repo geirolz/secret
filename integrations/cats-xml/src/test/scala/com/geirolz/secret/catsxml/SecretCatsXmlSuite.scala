@@ -5,7 +5,7 @@ import cats.xml.{Xml, XmlData}
 import cats.xml.syntax.*
 import com.geirolz.secret.{secretTag, Secret}
 
-class SecretCatsXmlSuite extends munit.FunSuite:
+class SecretCatsXmlSuite extends SimpleIOSuite:
 
   test("Secret should be decoded from xml") {
     val xml: XmlData.XmlString         = Xml.string("secret_value")

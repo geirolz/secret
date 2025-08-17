@@ -7,9 +7,8 @@ object ProjectDependencies {
   private val catsVersion   = "2.13.0"
   private val bcryptVersion = "0.10.2"
   // test
-  private val munitVersion       = "1.1.0"
-  private val munitEffectVersion = "2.0.0"
-  private val scalacheck         = "1.18.1"
+  private val weaverVersion = "0.8.3"
+  private val scalacheck    = "1.18.1"
   // integrations
   private val catsEffectVersion     = "3.5.7"
   private val pureConfigVersion     = "0.17.8"
@@ -22,11 +21,10 @@ object ProjectDependencies {
     "at.favre.lib"   % "bcrypt"    % bcryptVersion,
 
     // test
-    "org.typelevel"  %% "cats-effect"       % catsEffectVersion  % Test,
-    "org.typelevel"  %% "munit-cats-effect" % munitEffectVersion % Test,
-    "org.scalameta"  %% "munit"             % munitVersion       % Test,
-    "org.scalameta"  %% "munit-scalacheck"  % munitVersion       % Test,
-    "org.scalacheck" %% "scalacheck"        % scalacheck         % Test
+    "org.typelevel"       %% "cats-effect"       % catsEffectVersion % Test,
+    "com.disneystreaming" %% "weaver-cats"       % weaverVersion     % Test,
+    "com.disneystreaming" %% "weaver-scalacheck" % weaverVersion     % Test,
+    "org.scalacheck"      %% "scalacheck"        % scalacheck        % Test
   )
 
   object Core {
@@ -44,8 +42,7 @@ object ProjectDependencies {
 
     object CatsEffect {
       lazy val dedicated: Seq[ModuleID] = List(
-        "org.typelevel" %% "cats-effect"       % catsEffectVersion,
-        "org.typelevel" %% "munit-cats-effect" % munitEffectVersion % Test
+        "org.typelevel" %% "cats-effect" % catsEffectVersion
       )
     }
 
@@ -64,8 +61,7 @@ object ProjectDependencies {
     object Ciris {
       lazy val dedicated: Seq[ModuleID] = List(
         "is.cir"        %% "ciris"             % cirisVersion,
-        "org.typelevel" %% "cats-effect"       % catsEffectVersion  % Test,
-        "org.typelevel" %% "munit-cats-effect" % munitEffectVersion % Test
+        "org.typelevel" %% "cats-effect"       % catsEffectVersion % Test,
       )
     }
 

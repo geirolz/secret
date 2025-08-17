@@ -4,7 +4,7 @@ import com.geirolz.secret.{secretTag, Secret}
 import io.circe.Json
 import io.circe.syntax.*
 
-class SecretCirceSuite extends munit.FunSuite:
+class SecretCirceSuite extends SimpleIOSuite:
 
   test("Secret should be decoded from json") {
     val json: Json = Json.fromString("secret_value")

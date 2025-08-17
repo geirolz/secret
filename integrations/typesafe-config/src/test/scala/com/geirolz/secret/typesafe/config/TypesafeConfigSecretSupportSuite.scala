@@ -3,7 +3,7 @@ package com.geirolz.secret.typesafe.config
 import com.geirolz.secret.Secret
 import com.typesafe.config.{Config, ConfigFactory}
 
-class TypesafeConfigSecretSupportSuite extends munit.FunSuite:
+class TypesafeConfigSecretSupportSuite extends SimpleIOSuite:
 
   test("Read OneShotSecret string with typesafe config") {
 

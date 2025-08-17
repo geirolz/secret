@@ -157,6 +157,7 @@ def module(modName: String)(
   Project(modName, file(folder))
     .settings(
       name := s"$prjName $modDocName",
+      testFrameworks += new TestFramework("weaver.framework.CatsEffect"),
       mimaSettings,
       publishSettings,
       baseSettings

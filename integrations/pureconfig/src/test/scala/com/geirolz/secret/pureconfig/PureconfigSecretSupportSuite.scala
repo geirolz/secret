@@ -7,7 +7,7 @@ import com.geirolz.secret.pureconfig.given
 import com.geirolz.secret.Secret
 import com.typesafe.config.Config
 
-class PureconfigSecretSupportSuite extends munit.FunSuite:
+class PureconfigSecretSupportSuite extends SimpleIOSuite:
 
   test("Read secrets with macro") {
 
