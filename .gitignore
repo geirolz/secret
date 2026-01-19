@@ -1,6 +1,8 @@
 # Created by .ignore support plugin (hsz.mobi)
 ### Scala template
 *.log
+.metals/
+.metals.sbt
 
 ### SBT template
 # Simple Build Tool
@@ -24,14 +26,38 @@ atlassian-ide-plugin.xml
 
 private.sbt
 
-# INFRA
-.terraform
-*.resolved.*
-
 # MODULES TARGETS
 target/
-modules/core/target/
-modules/generic/target/
+modules/core/target
+modules/generic/targetk
 /.bsp/sbt.json
 
+#changelog
+changelog.md
 
+### Metals (Scala Language Server)
+.metals/
+.metals.sbt
+.bloop/
+.bsp/
+metals.sbt
+
+### Cursor IDE
+.cursor/
+.cursorrules
+.cursorignore
+
+### VS Code
+.vscode/
+*.code-workspace
+
+### Bloop (Build Server Protocol)
+.bloop/
+.bsp/
+bloop.settings.json
+bloop.settings.json.bak
+
+### Additional Scala/Build tool files
+*.metals/
+*.bloop/
+*.bsp/

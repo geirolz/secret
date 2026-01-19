@@ -1,6 +1,6 @@
 //package com.geirolz.secret
 //
-//class VisualVmTest extends munit.FunSuite {
+//class VisualVmTest extends SimpleIOSuite {
 //
 //  test("test") {
 //

@@ -1,11 +1,14 @@
 package com.geirolz.secret
 
 import cats.Eq
+import cats.effect.IO
 import com.geirolz.secret.strategy.{SecretStrategy, SecretStrategyFactory}
 import com.geirolz.secret.transform.Hasher
 import com.geirolz.secret.util.SysEnv
 import org.scalacheck.Arbitrary
 import org.scalacheck.Prop.forAll
+import weaver.SimpleIOSuite
+import weaver.scalacheck.{*, given}
 
 import scala.collection.immutable.ArraySeq
 import scala.reflect.ClassTag
@@ -14,7 +17,7 @@ import scala.util.Try
 class XorSecretSuite extends SecretSuite(using SecretStrategy.xorFactory)
 class PlainSecretSuite extends SecretSuite(using SecretStrategy.plainFactory)
 
-abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheckSuite:
+abstract class SecretSuite(using SecretStrategyFactory) extends SimpleIOSuite with Checkers:
 
   // numbers
   testSecretStrategyFor[Short]
@@ -36,114 +39,76 @@ abstract class SecretSuite(using SecretStrategyFactory) extends munit.ScalaCheck
   testSecretStrategyFor[ArraySeq[Char]]
 
   test("Secret.fromEnv") {
-    given SysEnv[Try] = SysEnv.fromMap[Try](Map("TEST" -> "VALUE"))
+    given SysEnv[IO] = SysEnv.fromMap[IO](Map("TEST" -> "VALUE"))
     Secret
-      .fromEnv[Try]("TEST")
-      .get
-      .euseAndDestroy(value =>
-        assertEquals(
-          obtained = value,
-          expected = "VALUE"
-        )
-      )
+      .fromEnv[IO]("TEST")
+      .flatMap(_.useAndDestroy(value => expect(value == "VALUE")))
   }
 
   test("Secret.deferred.fromEnv") {
-    given SysEnv[Try] = SysEnv.fromMap[Try](Map("TEST" -> "VALUE"))
+    given SysEnv[IO] = SysEnv.fromMap[IO](Map("TEST" -> "VALUE"))
     Secret.deferred
-      .fromEnv[Try]("TEST")
-      .use(value =>
-        assertEquals(
-          obtained = value,
-          expected = "VALUE"
-        )
-      )
+      .fromEnv[IO]("TEST")
+      .use(value => expect(value == "VALUE"))
   }
 
-  test("Secret without recDestructionLocation") {
+  pureTest("Secret without recDestructionLocation") {
 
     val secret = Secret("TEST", recDestructionLocation = false)
     secret.destroy()
 
-    assertEquals(
-      obtained = secret.destructionLocation,
-      expected = None
-    )
+    expect(secret.destructionLocation.isEmpty)
   }
 
   test("Option Secret getOrEmptySecret") {
 
-    // some
     val someSecret: Option[Secret[String]] = Option(Secret("TEST"))
-    someSecret.getOrEmptySecret.euseAndDestroy { value =>
-      assertEquals(
-        obtained = value,
-        expected = "TEST"
-      )
-    }
-
-    // none
     val noneSecret: Option[Secret[String]] = None
-    noneSecret.getOrEmptySecret.euseAndDestroy { value =>
-      assertEquals(
-        obtained = value,
-        expected = ""
-      )
-    }
+
+    for {
+      someCheck <- someSecret.getOrEmptySecret.useAndDestroy(value => expect(value == "TEST"))
+      noneCheck <- noneSecret.getOrEmptySecret.useAndDestroy(value => expect(value == ""))
+    } yield someCheck && noneCheck
   }
 
   test("Either Secret getOrEmptySecret") {
 
-    // some
     val rightSecret: Either[String, Secret[String]] = Right(Secret("TEST"))
-    rightSecret.getOrEmptySecret.euseAndDestroy { value =>
-      assertEquals(
-        obtained = value,
-        expected = "TEST"
-      )
-    }
+    val leftSecret: Either[String, Secret[String]]  = Left("ERROR")
 
-    // none
-    val leftSecret: Either[String, Secret[String]] = Left("ERROR")
-    leftSecret.getOrEmptySecret.euseAndDestroy { value =>
-      assertEquals(
-        obtained = value,
-        expected = ""
-      )
-    }
+    for {
+      rightCheck <- rightSecret.getOrEmptySecret.useAndDestroy(value => expect(value == "TEST"))
+      leftCheck  <- leftSecret.getOrEmptySecret.useAndDestroy(value => expect(value == ""))
+    } yield rightCheck && leftCheck
   }
 
   private def testSecretStrategyFor[T: Arbitrary: Eq: SecretStrategy](using c: ClassTag[T]): Unit = {
 
     val typeName = c.runtimeClass.getSimpleName.capitalize
 
-    property(s"Secret[$typeName] isValueEquals works properly") {
+    test(s"Secret[$typeName] isValueEquals works properly") {
       forAll { (value: T) =>
         val s1 = Secret(value)
         val s2 = Secret(value)
 
-        assert(s1.isValueEquals(s2))
+        val c1 = expect(s1.isValueEquals(s2))
         s1.destroy()
-        assert(!s1.isValueEquals(s2))
-        assert(!s2.isValueEquals(s1))
+        val c2 = expect(!s1.isValueEquals(s2))
+        val c3 = expect(!s2.isValueEquals(s1))
         s2.destroy()
-        assert(!s1.isValueEquals(s2))
+        val c4 = expect(!s1.isValueEquals(s2))
+
+        c1 && c2 && c3 && c4
       }
     }
 
     // use
-    property(s"Secret[$typeName] obfuscate and de-obfuscate properly - use") {
+    test(s"Secret[$typeName] obfuscate and de-obfuscate properly - use") {
       forAll { (value: T) =>
-        assert(
+        whenSuccess(
           Secret(value)
-            .use[Try, Unit](result => {
-              assertEquals(
-                obtained = result,
-                expected = value
-              )
-            })
-            .isSuccess
-        )
+            .euse[Unit](identity)
+        )(result => expect(result == value))
       }
     }
   }

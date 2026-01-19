@@ -4,7 +4,7 @@ import com.geirolz.secret.util.BytesUtils
 
 import java.nio.ByteBuffer
 
-class BytesUtilsSuite extends munit.FunSuite:
+class BytesUtilsSuite extends SimpleIOSuite:
 
   test("clearByteArray") {
     val bytes: Array[Byte] = Array[Byte](1, 2, 3, 4, 5)

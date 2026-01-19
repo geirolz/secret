@@ -24,18 +24,18 @@ jobs:
             test-tasks: scalafmtCheck gen-doc coverage test coverageReport
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       #----------- JDK -----------
       - name: Setup JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: "liberica"
           java-version: 17
 
       #----------- CACHE -----------
       - name: Cache SBT
-        uses: actions/cache@v4.0.2
+        uses: actions/cache@v5.0.2
         with:
           # A list of files, directories, and wildcard patterns to cache and restore
           path: |
@@ -63,18 +63,18 @@ jobs:
     needs: [ build ]
     if: github.event_name != 'pull_request'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       #----------- JDK -----------
       - name: Setup JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: "liberica"
           java-version: 17
 
       #----------- CACHE -----------
       - name: Cache SBT
-        uses: actions/cache@v4.0.2
+        uses: actions/cache@v5.0.2
         with:
           # A list of files, directories, and wildcard patterns to cache and restore
           path: |

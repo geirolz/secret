@@ -1,21 +1,17 @@
 package com.geirolz.secret.util
 
-class TestLocation extends munit.FunSuite:
+import weaver.SimpleIOSuite
 
-  test("Test Location") {
+class TestLocation extends SimpleIOSuite:
+
+  pureTest("Test Location") {
 
     val location: Location = summon[Location]
 
-    assertEquals(
-      obtained = location.sourceFile.substring(location.sourceFile.lastIndexOf("/") + 1),
-      expected = "TestLocation.scala"
-    )
-    assertEquals(
-      obtained = location.line,
-      expected = 7
-    )
-    assertEquals(
-      obtained = location.column,
-      expected = 45
-    )
+    expect(
+      location.sourceFile.substring(location.sourceFile.lastIndexOf("/") + 1)
+        == "TestLocation.scala"
+    ) &&
+    expect(location.line == 7) &&
+    expect(location.column == 45)
   }

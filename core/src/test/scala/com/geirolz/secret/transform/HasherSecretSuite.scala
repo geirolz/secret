@@ -1,11 +1,13 @@
 package com.geirolz.secret.transform
 
+import cats.effect.IO
 import com.geirolz.secret.*
+import weaver.SimpleIOSuite
 
 import java.nio.charset.StandardCharsets
 import scala.util.Try
 
-class HasherSecretSuite extends munit.FunSuite:
+class HasherSecretSuite extends SimpleIOSuite:
 
   // MD
   testHasher("md2")(
@@ -72,12 +74,9 @@ class HasherSecretSuite extends munit.FunSuite:
     title: String
   )(hasher: Try[Hasher], plain: String, expected: String): Unit =
     test(title) {
-      Secret(plain)
-        .map(v => hasher.get.hashAsString(v.getBytes(StandardCharsets.UTF_8)))
-        .euse(v =>
-          assertEquals(
-            obtained = v,
-            expected = expected
-          )
-        )
+      IO.fromEither(
+        Secret(plain)
+          .map(v => hasher.get.hashAsString(v.getBytes(StandardCharsets.UTF_8)))
+          .euse(v => expect(v == expected))
+      )
     }

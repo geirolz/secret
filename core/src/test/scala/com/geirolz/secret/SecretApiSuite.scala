@@ -6,6 +6,8 @@ import com.geirolz.secret.strategy.{SecretStrategy, SecretStrategyFactory}
 import com.geirolz.secret.testing.SecretBuilder
 import org.scalacheck.Arbitrary
 import org.scalacheck.Prop.forAll
+import weaver.SimpleIOSuite
+import weaver.scalacheck.Checkers
 
 import scala.collection.immutable.ArraySeq
 import scala.reflect.ClassTag
@@ -19,8 +21,9 @@ class XorOneShotSecretApiSuite extends SecretApiSuite(SecretBuilder.secret)(usin
 class PlainSecretApiSuite extends SecretApiSuite(SecretBuilder.oneShotSecret)(using SecretStrategy.plainFactory)
 class OneShotPlainSecretApiSuite extends SecretApiSuite(SecretBuilder.oneShotSecret)(using SecretStrategy.plainFactory)
 
-abstract class SecretApiSuite[S[X] <: SecretApi[X]](b: SecretBuilder[S])(using SecretStrategyFactory)
-    extends munit.ScalaCheckSuite:
+abstract class SecretApiSuite[S[X] <: SecretApi[X]](sbuilder: SecretBuilder[S])(using SecretStrategyFactory)
+    extends SimpleIOSuite
+    with Checkers:
 
   // numbers
   testSecretStrategyFor[Short]
@@ -41,18 +44,20 @@ abstract class SecretApiSuite[S[X] <: SecretApi[X]](b: SecretBuilder[S])(using S
   testSecretStrategyFor[ArraySeq[Byte]]
   testSecretStrategyFor[ArraySeq[Char]]
 
-  test("Simple Secret String") {
-    b("TEST").euseAndDestroy(_ => ())
+  pureTest("Simple Secret String") {
+    expect(sbuilder("TEST").euseAndDestroy(_ => ()).isRight)
   }
 
-  test("Simple Secret String destroyed") {
-    val s1 = b("TEST")
-    s1.euseAndDestroy(_ => ())
+  pureTest("Simple Secret String destroyed") {
+    val s1 = sbuilder("TEST")
+    expect(s1.euseAndDestroy(_ => ()).isRight) &&
+    expect(s1.euseAndDestroy(_ => ()).isLeft)
   }
 
-  test("Simple Secret with long String") {
-    b(
-      """|C#iur0#UsxTWzUZ5QPn%KGo$922SMvc5zYLqrcdE6SU6ZpFQrk3&W
+  pureTest("Simple Secret with long String") {
+    expect(
+      sbuilder(
+        """|C#iur0#UsxTWzUZ5QPn%KGo$922SMvc5zYLqrcdE6SU6ZpFQrk3&W
          |1c48obb&Rngv9twgMHTuXG@hRb@FZg@u!uPoG%dxTab0QtTab0Qta
          |c5zYU6ZpRngv9twgMHTuXGFdxTab0QtTab0QtaKGo$922SMvc5zYL
          |KGo$922SMvc5zYLqrcdEKGo$922SMvc5zYLqrcdE6SU6ZpFQrk36S
@@ -81,55 +86,40 @@ abstract class SecretApiSuite[S[X] <: SecretApi[X]](b: SecretBuilder[S])(using S
          |qrcdEKGo$922SMvc5zYU6ZpFQrk31hRbc48obb1c48obbQrqgk36S
          |qrcdEKGo$922SMvc5zYU6ZpFQrk31hRbc48obb1c48obbQrqgk36S
          |""".stripMargin
-    ).euseAndDestroy(_ => ())
+      ).euseAndDestroy(_ => ()).isRight
+    )
   }
 
   private def testSecretStrategyFor[T: Arbitrary: Eq: SecretStrategy](using c: ClassTag[T]): Unit = {
 
     val typeName = c.runtimeClass.getSimpleName.capitalize
 
-    property(s"${b.name}[$typeName] successfully obfuscate") {
+    property(s"${sbuilder.name}[$typeName] successfully obfuscate") {
       forAll { (value: T) =>
-        b(value)
-        assert(cond = true)
+        sbuilder(value)
+        assert(true)
       }
     }
 
-    property(s"${b.name}[$typeName] equals always return false") {
+    property(s"${sbuilder.name}[$typeName] equals always return false") {
       forAll { (value: T) =>
-        assertNotEquals(b(value), b(value))
+        expect(sbuilder(value) != sbuilder(value))
       }
     }
 
-    property(s"${b.name}[$typeName] hashCode is different from the value one") {
+    property(s"${sbuilder.name}[$typeName] hashCode is different from the value one") {
       forAll { (value: T) =>
-        assert(b(value).hashCode() != value.hashCode())
+        expect(sbuilder(value).hashCode() != value.hashCode())
       }
     }
 
-    property(s"${b.name}[$typeName] obfuscate and de-obfuscate properly - useAndDestroy") {
+    property(s"${sbuilder.name}[$typeName] obfuscate and de-obfuscate properly - useAndDestroy") {
       forAll { (value: T) =>
-        val secret: S[T] = b(value)
+        val secret: S[T] = sbuilder(value)
 
-        assert(
-          secret
-            .useAndDestroy[Try, Unit] { result =>
-              assertEquals(
-                obtained = result,
-                expected = value
-              )
-            }
-            .isSuccess
-        )
-
-        assertEquals(
-          obtained = secret.useAndDestroy[Try, Int](_.hashCode()).isFailure,
-          expected = true
-        )
-        assertEquals(
-          obtained = secret.isDestroyed,
-          expected = true
-        )
+        whenSuccess(secret.euseAndDestroy[Unit](identity))(result => expect(result == value)) &&
+        expect(secret.useAndDestroy[Try, Int](_.hashCode()).isFailure) &&
+        expect(secret.isDestroyed)
       }
     }
   }
