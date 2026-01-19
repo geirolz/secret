@@ -3,8 +3,9 @@ package com.geirolz.secret.ciris
 import cats.effect.IO
 import ciris.ConfigValue
 import com.geirolz.secret.Secret
+import weaver.*
 
-class CirisSecretSupportSuite extends munit.CatsEffectSuite:
+class CirisSecretSupportSuite extends SimpleIOSuite:
 
   test("Read OneShotSecret string with ciris") {
 
@@ -14,14 +15,9 @@ class CirisSecretSupportSuite extends munit.CatsEffectSuite:
         .as[Secret.OneShot[String]]
         .load[IO]
 
-    assertIO_(
-      result.flatMap(_.useAndDestroy(secretValue => {
-        assertEquals(
-          obtained = secretValue,
-          expected = "my-super-secret-password"
-        )
-      }))
-    )
+    result.flatMap(_.useAndDestroy(secretValue => {
+      expect(secretValue == "my-super-secret-password")
+    }))
   }
 
   test("Read Secret string with ciris") {
@@ -32,13 +28,7 @@ class CirisSecretSupportSuite extends munit.CatsEffectSuite:
         .as[Secret[String]]
         .load[IO]
 
-    assertIO_(
-      result.flatMap(_.use(secretValue => {
-        assertEquals(
-          obtained = secretValue,
-          expected = "my-super-secret-password"
-        )
-      }))
-    )
-
+    result.flatMap(_.use(secretValue => {
+      expect(secretValue == "my-super-secret-password")
+    }))
   }

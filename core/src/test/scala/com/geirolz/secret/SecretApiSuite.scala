@@ -7,11 +7,12 @@ import com.geirolz.secret.testing.SecretBuilder
 import org.scalacheck.Arbitrary
 import org.scalacheck.Prop.forAll
 import weaver.SimpleIOSuite
-import weaver.scalacheck.Checkers
+import weaver.scalacheck.{*, given}
 
 import scala.collection.immutable.ArraySeq
 import scala.reflect.ClassTag
 import scala.util.Try
+import cats.Show
 
 // xor
 class XorSecretApiSuite extends SecretApiSuite(SecretBuilder.secret)(using SecretStrategy.xorFactory)
@@ -45,7 +46,8 @@ abstract class SecretApiSuite[S[X] <: SecretApi[X]](sbuilder: SecretBuilder[S])(
   testSecretStrategyFor[ArraySeq[Char]]
 
   pureTest("Simple Secret String") {
-    expect(sbuilder("TEST").euseAndDestroy(_ => ()).isRight)
+    val s1 = sbuilder("TEST")
+    expect(s1.euseAndDestroy(_ => ()).isRight)
   }
 
   pureTest("Simple Secret String destroyed") {
@@ -55,9 +57,9 @@ abstract class SecretApiSuite[S[X] <: SecretApi[X]](sbuilder: SecretBuilder[S])(
   }
 
   pureTest("Simple Secret with long String") {
-    expect(
-      sbuilder(
-        """|C#iur0#UsxTWzUZ5QPn%KGo$922SMvc5zYLqrcdE6SU6ZpFQrk3&W
+
+    val s1 = sbuilder(
+      """|C#iur0#UsxTWzUZ5QPn%KGo$922SMvc5zYLqrcdE6SU6ZpFQrk3&W
          |1c48obb&Rngv9twgMHTuXG@hRb@FZg@u!uPoG%dxTab0QtTab0Qta
          |c5zYU6ZpRngv9twgMHTuXGFdxTab0QtTab0QtaKGo$922SMvc5zYL
          |KGo$922SMvc5zYLqrcdEKGo$922SMvc5zYLqrcdE6SU6ZpFQrk36S
@@ -86,35 +88,36 @@ abstract class SecretApiSuite[S[X] <: SecretApi[X]](sbuilder: SecretBuilder[S])(
          |qrcdEKGo$922SMvc5zYU6ZpFQrk31hRbc48obb1c48obbQrqgk36S
          |qrcdEKGo$922SMvc5zYU6ZpFQrk31hRbc48obb1c48obbQrqgk36S
          |""".stripMargin
-      ).euseAndDestroy(_ => ()).isRight
     )
+
+    expect(s1.euseAndDestroy(_ => ()).isRight)
   }
 
-  private def testSecretStrategyFor[T: Arbitrary: Eq: SecretStrategy](using c: ClassTag[T]): Unit = {
+  private def testSecretStrategyFor[T: Arbitrary: Eq: SecretStrategy: Show](using c: ClassTag[T]): Unit = {
 
     val typeName = c.runtimeClass.getSimpleName.capitalize
 
-    property(s"${sbuilder.name}[$typeName] successfully obfuscate") {
-      forAll { (value: T) =>
+    test(s"${sbuilder.name}[$typeName] successfully obfuscate") {
+      forall { (value: T) =>
         sbuilder(value)
-        assert(true)
+        expect(true)
       }
     }
 
-    property(s"${sbuilder.name}[$typeName] equals always return false") {
-      forAll { (value: T) =>
+    test(s"${sbuilder.name}[$typeName] equals always return false") {
+      forall { (value: T) =>
         expect(sbuilder(value) != sbuilder(value))
       }
     }
 
-    property(s"${sbuilder.name}[$typeName] hashCode is different from the value one") {
-      forAll { (value: T) =>
+    test(s"${sbuilder.name}[$typeName] hashCode is different from the value one") {
+      forall { (value: T) =>
         expect(sbuilder(value).hashCode() != value.hashCode())
       }
     }
 
-    property(s"${sbuilder.name}[$typeName] obfuscate and de-obfuscate properly - useAndDestroy") {
-      forAll { (value: T) =>
+    test(s"${sbuilder.name}[$typeName] obfuscate and de-obfuscate properly - useAndDestroy") {
+      forall { (value: T) =>
         val secret: S[T] = sbuilder(value)
 
         whenSuccess(secret.euseAndDestroy[Unit](identity))(result => expect(result == value)) &&

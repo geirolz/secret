@@ -1,14 +1,15 @@
 package com.geirolz.secret
 
 import cats.effect.IO
+import weaver.*
 
-class DeferredSecretCatsEffectSuite extends munit.CatsEffectSuite:
+class DeferredSecretCatsEffectSuite extends SimpleIOSuite:
 
   test("DeferredSecret should be usable as resource") {
     DeferredSecret[IO, String](IO.pure("password")).resource
       .use(value =>
         IO(
-          assertEquals(obtained = value, expected = "password")
+          expect(value == "password")
         )
       )
   }
@@ -18,7 +19,7 @@ class DeferredSecretCatsEffectSuite extends munit.CatsEffectSuite:
       .resource[IO, String](IO.pure("password"))
       .use(value =>
         IO(
-          assertEquals(obtained = value, expected = "password")
+          expect(value == "password")
         )
       )
   }

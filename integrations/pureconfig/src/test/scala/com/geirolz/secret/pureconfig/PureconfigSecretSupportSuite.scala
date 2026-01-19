@@ -6,10 +6,11 @@ import com.geirolz.secret.pureconfig.testing.FooWithSecret
 import com.geirolz.secret.pureconfig.given
 import com.geirolz.secret.Secret
 import com.typesafe.config.Config
+import weaver.*
 
 class PureconfigSecretSupportSuite extends SimpleIOSuite:
 
-  test("Read secrets with macro") {
+  pureTest("Read secrets with macro") {
 
     val config: Config = ConfigFactoryWrapper
       .parseString(
@@ -24,23 +25,12 @@ class PureconfigSecretSupportSuite extends SimpleIOSuite:
       .get
 
     val result: FooWithSecret = ConfigSource.fromConfig(config).loadOrThrow[FooWithSecret]
-    result.secret.euse(secretValue => {
-      assertEquals(
-        obtained = secretValue,
-        expected = "my-super-secret-password"
-      )
-    })
 
-    result.oneShotSecret.euseAndDestroy(secretValue => {
-      assertEquals(
-        obtained = secretValue,
-        expected = "my-super-one-shot-secret-password"
-      )
-    })
-
+    expect(result.secret.euse(v => v) == Right("my-super-secret-password"))
+    expect(result.oneShotSecret.euseAndDestroy(v => v) == Right("my-super-one-shot-secret-password"))
   }
 
-  test("Read OneShotSecret string with pureconfig") {
+  pureTest("Read OneShotSecret string with pureconfig") {
 
     val config: Config = ConfigFactoryWrapper
       .parseString(
@@ -59,16 +49,13 @@ class PureconfigSecretSupportSuite extends SimpleIOSuite:
     assert(
       result
         .flatMap(_.euseAndDestroy(secretValue => {
-          assertEquals(
-            obtained = secretValue,
-            expected = "my-super-secret-password"
-          )
+          expect(secretValue == "my-super-secret-password")
         }))
         .isRight
     )
   }
 
-  test("Read Secret string with pureconfig") {
+  pureTest("Read Secret string with pureconfig") {
 
     val config: Config = ConfigFactoryWrapper
       .parseString(
@@ -87,10 +74,7 @@ class PureconfigSecretSupportSuite extends SimpleIOSuite:
     assert(
       result
         .flatMap(_.euse(secretValue => {
-          assertEquals(
-            obtained = secretValue,
-            expected = "my-super-secret-password"
-          )
+          expect(secretValue == "my-super-secret-password")
         }))
         .isRight
     )

@@ -6,13 +6,16 @@ import com.geirolz.secret.strategy.{SecretStrategy, SecretStrategyFactory}
 import com.geirolz.secret.transform.Hasher
 import com.geirolz.secret.util.SysEnv
 import org.scalacheck.Arbitrary
+import org.scalacheck.Gen
+
 import org.scalacheck.Prop.forAll
-import weaver.SimpleIOSuite
+import weaver.*
 import weaver.scalacheck.{*, given}
 
 import scala.collection.immutable.ArraySeq
 import scala.reflect.ClassTag
 import scala.util.Try
+import cats.Show
 
 class XorSecretSuite extends SecretSuite(using SecretStrategy.xorFactory)
 class PlainSecretSuite extends SecretSuite(using SecretStrategy.plainFactory)
@@ -82,12 +85,14 @@ abstract class SecretSuite(using SecretStrategyFactory) extends SimpleIOSuite wi
     } yield rightCheck && leftCheck
   }
 
-  private def testSecretStrategyFor[T: Arbitrary: Eq: SecretStrategy](using c: ClassTag[T]): Unit = {
+  private def testSecretStrategyFor[T: Arbitrary: Eq: SecretStrategy: Show](using
+    c: ClassTag[T]
+  ): Unit = {
 
     val typeName = c.runtimeClass.getSimpleName.capitalize
 
     test(s"Secret[$typeName] isValueEquals works properly") {
-      forAll { (value: T) =>
+      forall { (value: T) =>
         val s1 = Secret(value)
         val s2 = Secret(value)
 
@@ -104,7 +109,7 @@ abstract class SecretSuite(using SecretStrategyFactory) extends SimpleIOSuite wi
 
     // use
     test(s"Secret[$typeName] obfuscate and de-obfuscate properly - use") {
-      forAll { (value: T) =>
+      forall { (value: T) =>
         whenSuccess(
           Secret(value)
             .euse[Unit](identity)

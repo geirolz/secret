@@ -2,10 +2,11 @@ package com.geirolz.secret.typesafe.config
 
 import com.geirolz.secret.Secret
 import com.typesafe.config.{Config, ConfigFactory}
+import weaver.*
 
 class TypesafeConfigSecretSupportSuite extends SimpleIOSuite:
 
-  test("Read OneShotSecret string with typesafe config") {
+  pureTest("Read OneShotSecret string with typesafe config") {
 
     val config: Config = ConfigFactory.parseString(
       """
@@ -19,16 +20,13 @@ class TypesafeConfigSecretSupportSuite extends SimpleIOSuite:
     assert(
       result
         .euseAndDestroy(secretValue => {
-          assertEquals(
-            obtained = secretValue,
-            expected = "my-super-secret-password"
-          )
+          expect(secretValue == "my-super-secret-password")
         })
         .isRight
     )
   }
 
-  test("Read Secret string with typesafe config") {
+  pureTest("Read Secret string with typesafe config") {
 
     val config: Config = ConfigFactory.parseString(
       """
@@ -42,10 +40,7 @@ class TypesafeConfigSecretSupportSuite extends SimpleIOSuite:
     assert(
       result
         .euse(secretValue => {
-          assertEquals(
-            obtained = secretValue,
-            expected = "my-super-secret-password"
-          )
+          expect(secretValue == "my-super-secret-password")
         })
         .isRight
     )
