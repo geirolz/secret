@@ -15,12 +15,12 @@ import scala.util.Try
 import cats.Show
 
 // xor
-class XorSecretApiSuite extends SecretApiSuite(SecretBuilder.secret)(using SecretStrategy.xorFactory)
-class XorOneShotSecretApiSuite extends SecretApiSuite(SecretBuilder.secret)(using SecretStrategy.xorFactory)
+object XorSecretApiSuite extends SecretApiSuite(SecretBuilder.secret)(using SecretStrategy.xorFactory)
+object XorOneShotSecretApiSuite extends SecretApiSuite(SecretBuilder.secret)(using SecretStrategy.xorFactory)
 
 //plain
-class PlainSecretApiSuite extends SecretApiSuite(SecretBuilder.oneShotSecret)(using SecretStrategy.plainFactory)
-class OneShotPlainSecretApiSuite extends SecretApiSuite(SecretBuilder.oneShotSecret)(using SecretStrategy.plainFactory)
+object PlainSecretApiSuite extends SecretApiSuite(SecretBuilder.oneShotSecret)(using SecretStrategy.plainFactory)
+object OneShotPlainSecretApiSuite extends SecretApiSuite(SecretBuilder.oneShotSecret)(using SecretStrategy.plainFactory)
 
 abstract class SecretApiSuite[S[X] <: SecretApi[X]](sbuilder: SecretBuilder[S])(using SecretStrategyFactory)
     extends SimpleIOSuite

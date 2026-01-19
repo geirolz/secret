@@ -7,10 +7,12 @@ import com.geirolz.secret.pureconfig.given
 import com.geirolz.secret.Secret
 import com.typesafe.config.Config
 import weaver.*
+import pureconfig.error.ConfigReaderFailures
+import com.geirolz.secret.SecretDestroyed
 
-object PureconfigSecretSupportSuite extends SimpleIOSuite:
+object PureconfigSecretSupportSuite extends FunSuite:
 
-  pureTest("Read secrets with macro") {
+  test("Read secrets with macro") {
 
     val config: Config = ConfigFactoryWrapper
       .parseString(
@@ -24,13 +26,19 @@ object PureconfigSecretSupportSuite extends SimpleIOSuite:
       .toOption
       .get
 
-    val result: FooWithSecret = ConfigSource.fromConfig(config).loadOrThrow[FooWithSecret]
+    val fooWithSecret: FooWithSecret =
+      ConfigSource
+        .fromConfig(config)
+        .loadOrThrow[FooWithSecret]
 
-    expect(result.secret.euse(v => v) == Right("my-super-secret-password"))
-    expect(result.oneShotSecret.euseAndDestroy(v => v) == Right("my-super-one-shot-secret-password"))
+    val result1 = fooWithSecret.secret.euse(identity)
+    val result2 = fooWithSecret.oneShotSecret.euseAndDestroy(identity)
+
+    expect(result1 == Right("my-super-secret-password")) &&
+    expect(result2 == Right("my-super-one-shot-secret-password"))
   }
 
-  pureTest("Read OneShotSecret string with pureconfig") {
+  test("Read OneShotSecret string with pureconfig") {
 
     val config: Config = ConfigFactoryWrapper
       .parseString(
@@ -42,20 +50,17 @@ object PureconfigSecretSupportSuite extends SimpleIOSuite:
       .toOption
       .get
 
-    val result: ConfigReader.Result[Secret.OneShot[String]] =
+    val secretConfig: ConfigReader.Result[Secret.OneShot[String]] =
       summon[ConfigReader[Secret.OneShot[String]]]
         .from(config.getValue("conf.secret-value"))
 
-    assert(
-      result
-        .flatMap(_.euseAndDestroy(secretValue => {
-          expect(secretValue == "my-super-secret-password")
-        }))
-        .isRight
-    )
+    val result: Either[ConfigReaderFailures | SecretDestroyed, String] =
+      secretConfig.flatMap(_.euseAndDestroy(identity))
+
+    expect(result == Right("my-super-secret-password"))
   }
 
-  pureTest("Read Secret string with pureconfig") {
+  test("Read Secret string with pureconfig") {
 
     val config: Config = ConfigFactoryWrapper
       .parseString(
@@ -67,15 +72,12 @@ object PureconfigSecretSupportSuite extends SimpleIOSuite:
       .toOption
       .get
 
-    val result: ConfigReader.Result[Secret[String]] =
+    val configSecret: ConfigReader.Result[Secret[String]] =
       summon[ConfigReader[Secret[String]]]
         .from(config.getValue("conf.secret-value"))
 
-    assert(
-      result
-        .flatMap(_.euse(secretValue => {
-          expect(secretValue == "my-super-secret-password")
-        }))
-        .isRight
-    )
+    val result: Either[ConfigReaderFailures | SecretDestroyed, String] =
+      configSecret.flatMap(_.euse(identity))
+
+    expect(result == Right("my-super-secret-password"))
   }

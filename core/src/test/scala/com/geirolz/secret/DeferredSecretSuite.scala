@@ -7,55 +7,34 @@ import scala.util.Try
 import cats.syntax.all.*
 import com.geirolz.secret.Secret.Deferred
 import com.geirolz.secret.testing.*
+import cats.effect.kernel.Ref
 
 object DeferredSecretSuite extends SimpleIOSuite:
 
-  test("Secret.Deferred should be evaluated every time use is called with IO") {
-    var counter = 0
-    val secret: Secret.Deferred[IO, Int] =
-      Secret
-        .deferred(IO {
-          counter += 1
-          1
-        })
-        .map(_ + 1)
-        .flatMap(v => Secret.deferred.pure(v + 1))
-        .handleError(_ => Secret(0))
-        .handleErrorWith(_ => IO(Secret(0)))
-
-    expect.allF[IO](
-      expect(counter == 0).pure[IO],
-      secret.use((v: Int) => expect(v == 3)),
-      expect(counter == 1).pure[IO],
-      secret.use((v: Int) => expect(v == 3)),
-      expect(counter == 2).pure[IO],
-      secret.evalUse((v: Int) => IO(expect(v == 3))),
-      expect(counter == 3).pure[IO]
-    )
-  }
-
   test("Secret.Deferred should be evaluated every time use is called with Try") {
-    var counter = 0
-    val secret: Secret.Deferred[IO, Int] =
-      Secret
-        .deferred(IO {
-          counter += 1
-          1
-        })
-        .map(_ + 1)
-        .flatMap(v => Secret.deferred.pure(v + 1))
-        .handleError(_ => Secret(0))
-        .handleErrorWith(_ => IO(Secret(0)))
+    for
+      counterRef <- Ref.of[IO, Int](0)
+      secret: Secret.Deferred[IO, Int] =
+        Secret
+          .deferred(counterRef.updateAndGet(_ + 1))
+          .handleError(_ => Secret(0))
+          .handleErrorWith(_ => IO(Secret(0)))
 
-    expect.allF[IO](
-      expect(counter == 0).pure[IO],
-      secret.use((v: Int) => expect(v == 3)),
-      expect(counter == 1).pure[IO],
-      secret.use((v: Int) => expect(v == 3)),
-      expect(counter == 2).pure[IO],
-      secret.evalUse((v: Int) => IO(expect(v == 3))),
-      expect(counter == 3).pure[IO]
-    )
+      result <- expect.allF[IO](
+        // -1
+        counterRef.get.map(v => expect(v == 0)),
+        secret.use((v: Int) => expect(v == 1)),
+
+        // -2
+        counterRef.get.map(v => expect(v == 1)),
+        secret.use((v: Int) => expect(v == 2)),
+
+        // -3
+        counterRef.get.map(v => expect(v == 2)),
+        secret.evalUse((v: Int) => IO(expect(v == 3))),
+        counterRef.get.map(v => expect(v == 3))
+      )
+    yield result
   }
 
   test("Secret.deferred.pure should always return the same value") {

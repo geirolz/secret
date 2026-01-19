@@ -27,7 +27,7 @@ sealed trait DeferredSecret[F[_], T]:
     * "AndDestroy" because it's the default behavior of the DeferredSecret which could be called any number of times
     * since it re-create every time.
     */
-  def use[U](f: T => U): F[U]
+  def use[U](f: T => U)(using Location): F[U]
 
   /** Acquire the secret value and transform it.
     *
@@ -39,7 +39,7 @@ sealed trait DeferredSecret[F[_], T]:
     * "AndDestroy" because it's the default behavior of the DeferredSecret which could be called any number of times
     * since it re-create every time.
     */
-  def evalUse[U](f: T => F[U]): F[U]
+  def evalUse[U](f: T => F[U])(using Location): F[U]
 
   /** Acquire the secret value and transform it in `F`.
     *
@@ -51,7 +51,7 @@ sealed trait DeferredSecret[F[_], T]:
   def map[U: SecretStrategy](f: T => U)(using Hasher): Secret.Deferred[F, U]
 
   /** FlatMap the secret value to `U` */
-  def flatMap[U: SecretStrategy](f: T => Secret.Deferred[F, U])(using Hasher): Secret.Deferred[F, U]
+  def flatMap[U: SecretStrategy](f: T => Secret.Deferred[F, U])(using Hasher, Location): Secret.Deferred[F, U]
 
   /** Handle the error of the acquisition of the secret value */
   def handleError(f: Throwable => Secret[T]): Secret.Deferred[F, T]
@@ -92,11 +92,11 @@ object DeferredSecret:
       override def useRaw[U](f: Secret[T] => U): F[U] =
         acquire.map(f)
 
-      override def use[U](f: T => U): F[U] =
-        useRaw(_.useAndDestroy(f)).flatten
+      override def use[U](f: T => U)(using Location): F[U] =
+        acquire.flatMap(_.useAndDestroy[F, U](f))
 
-      override def evalUse[U](f: T => F[U]): F[U] =
-        evalUseRaw(_.evalUseAndDestroy(f))
+      override def evalUse[U](f: T => F[U])(using Location): F[U] =
+        acquire.flatMap(_.evalUseAndDestroy[F, U](f))
 
       override def evalUseRaw[U](f: Secret[T] => F[U]): F[U] =
         acquire.flatMap(f)
@@ -104,7 +104,9 @@ object DeferredSecret:
       override def map[U: SecretStrategy](f: T => U)(using Hasher): Secret.Deferred[F, U] =
         DeferredSecret.fromSecret(acquire.map(_.map(f)))
 
-      override def flatMap[U: SecretStrategy](f: T => Secret.Deferred[F, U])(using Hasher): Secret.Deferred[F, U] =
+      override def flatMap[U: SecretStrategy](
+        f: T => Secret.Deferred[F, U]
+      )(using Hasher, Location): Secret.Deferred[F, U] =
         DeferredSecret.fromSecret(evalUse(f(_).acquire))
 
       override def handleError(f: Throwable => Secret[T]): Secret.Deferred[F, T] =

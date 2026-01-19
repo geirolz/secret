@@ -15,15 +15,10 @@ object TypesafeConfigSecretSupportSuite extends SimpleIOSuite:
           |}""".stripMargin
     )
 
-    val result: Secret.OneShot[String] = config.getOneShotSecret[String]("conf.secret-value")
+    val secret: Secret.OneShot[String] = config.getOneShotSecret[String]("conf.secret-value")
+    val result                         = secret.euseAndDestroy(identity)
 
-    assert(
-      result
-        .euseAndDestroy(secretValue => {
-          expect(secretValue == "my-super-secret-password")
-        })
-        .isRight
-    )
+    expect(result == Right("my-super-secret-password"))
   }
 
   pureTest("Read Secret string with typesafe config") {
