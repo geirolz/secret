@@ -87,7 +87,7 @@ open class SecretStrategyFactory private[secret] (algebra: SecretStrategyAlgebra
 
   given SecretStrategy[Boolean] =
     build(1)(
-      fillBuffer = (b: PlainValueBuffer) => (v: Boolean) => b.put(if (v) 1.toByte else 0.toByte),
+      fillBuffer = (b: PlainValueBuffer) => (v: Boolean) => b.put(if v then 1.toByte else 0.toByte),
       readBuffer = _.get == 1.toByte
     )
 
@@ -101,8 +101,8 @@ open class SecretStrategyFactory private[secret] (algebra: SecretStrategyAlgebra
   given secretStrategyForBytes: SecretStrategy[Array[Byte]] =
     directByteBufferForArray(identity, identity)
 
-  given secretStrategyForChars(using ss: SecretStrategy[String]): SecretStrategy[Array[Char]] =
+  given (ss: SecretStrategy[String]) => SecretStrategy[Array[Char]] =
     ss.bimap(new String(_), _.toCharArray)
 
-  given [T: ClassTag](using ss: SecretStrategy[Array[T]]): SecretStrategy[ArraySeq[T]] =
+  given [T: ClassTag] => (ss: SecretStrategy[Array[T]]) => SecretStrategy[ArraySeq[T]] =
     ss.bimap(_.toArray, ArraySeq.from)

@@ -53,7 +53,7 @@ private[secret] object BytesUtils:
     require(start >= 0, "start cannot be negative")
     require(len >= 0, "len cannot be negative")
     require((start + len) <= buffer.limit(), "start + len cannot be greater than buffer limit")
-    val lenF  = if (len == 0) buffer.limit() - start else len
+    val lenF  = if len == 0 then buffer.limit() - start else len
     val bytes = new Array[Byte](lenF)
     for (i <- 0 until lenF) do bytes(i) = buffer.get(start + i)
     new String(bytes, charset)

@@ -4,8 +4,8 @@ import ciris.ConfigDecoder
 import com.geirolz.secret.Secret
 import com.geirolz.secret.strategy.SecretStrategy
 
-given [A, T: ConfigDecoder[A, *]: SecretStrategy]: ConfigDecoder[A, Secret[T]] =
+given [A, T: {ConfigDecoder[A, *], SecretStrategy}] => ConfigDecoder[A, Secret[T]] =
   summon[ConfigDecoder[A, T]].map(Secret(_))
 
-given [A, T: ConfigDecoder[A, *]: SecretStrategy]: ConfigDecoder[A, Secret.OneShot[T]] =
+given [A, T: {ConfigDecoder[A, *], SecretStrategy}] => ConfigDecoder[A, Secret.OneShot[T]] =
   summon[ConfigDecoder[A, T]].map(Secret.oneShot(_))

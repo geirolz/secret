@@ -8,5 +8,5 @@ import io.circe.{Decoder, Encoder}
 export com.geirolz.secret.circe.given_Decoder_Secret
 export com.geirolz.secret.circe.given_Decoder_OneShot
 
-given [S[X] <: SecretApi[X], T]: Encoder[S[T]] =
+given [S[X] <: SecretApi[X], T] => Encoder[S[T]] =
   Encoder.encodeString.contramap(_.hash)

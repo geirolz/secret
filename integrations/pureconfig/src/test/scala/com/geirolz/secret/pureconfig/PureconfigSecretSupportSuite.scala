@@ -8,7 +8,7 @@ import com.geirolz.secret.Secret
 import com.typesafe.config.Config
 import weaver.*
 
-class PureconfigSecretSupportSuite extends SimpleIOSuite:
+object PureconfigSecretSupportSuite extends SimpleIOSuite:
 
   pureTest("Read secrets with macro") {
 

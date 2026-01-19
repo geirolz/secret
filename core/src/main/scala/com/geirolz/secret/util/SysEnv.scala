@@ -23,6 +23,7 @@ object SysEnv:
   def fromMap[F[_]: Applicative](values: Map[String, String]): SysEnv[F] =
     (key: String) => values.get(key).pure[F]
 
-  given [F[_]: MonadThrow]: SysEnv[F] with
+  given [F[_]: MonadThrow] => SysEnv[F] {
     def getEnv(key: String): F[Option[String]] =
       MonadThrow[F].catchNonFatal(Option(System.getenv(key)))
+  }

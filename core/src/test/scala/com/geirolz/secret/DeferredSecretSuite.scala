@@ -8,7 +8,7 @@ import cats.syntax.all.*
 import com.geirolz.secret.Secret.Deferred
 import com.geirolz.secret.testing.*
 
-class DeferredSecretSuite extends SimpleIOSuite:
+object DeferredSecretSuite extends SimpleIOSuite:
 
   test("Secret.Deferred should be evaluated every time use is called with IO") {
     var counter = 0

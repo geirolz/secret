@@ -3,7 +3,7 @@ package com.geirolz.secret
 import cats.effect.IO
 import weaver.*
 
-class DeferredSecretCatsEffectSuite extends SimpleIOSuite:
+object DeferredSecretCatsEffectSuite extends SimpleIOSuite:
 
   test("DeferredSecret should be usable as resource") {
     DeferredSecret[IO, String](IO.pure("password")).resource

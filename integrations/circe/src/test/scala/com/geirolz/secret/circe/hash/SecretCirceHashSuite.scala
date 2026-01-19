@@ -5,7 +5,7 @@ import io.circe.Json
 import io.circe.syntax.*
 import weaver.*
 
-class SecretCirceHashSuite extends SimpleIOSuite:
+object SecretCirceHashSuite extends SimpleIOSuite:
 
   pureTest("Secret should be decoded from json") {
     val json: Json = Json.fromString("secret_value")

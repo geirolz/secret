@@ -6,7 +6,7 @@ import cats.xml.syntax.*
 import com.geirolz.secret.{secretTag, Secret}
 import weaver.*
 
-class SecretCatsXmlSuite extends SimpleIOSuite:
+object SecretCatsXmlSuite extends SimpleIOSuite:
 
   pureTest("Secret should be decoded from xml") {
     val xml: XmlData.XmlString         = Xml.string("secret_value")

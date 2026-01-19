@@ -2,7 +2,7 @@ package com.geirolz.secret.util
 
 import weaver.SimpleIOSuite
 
-class TestLocation extends SimpleIOSuite:
+object TestLocation extends SimpleIOSuite:
 
   pureTest("Test Location") {
 

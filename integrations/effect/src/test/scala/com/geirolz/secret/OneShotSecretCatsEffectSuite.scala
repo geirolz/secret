@@ -3,7 +3,7 @@ package com.geirolz.secret
 import cats.effect.IO
 import weaver.*
 
-class OneShotSecretCatsEffectSuite extends SimpleIOSuite:
+object OneShotSecretCatsEffectSuite extends SimpleIOSuite:
 
   test("OneShotSecret should be usable as a resourceDestroy") {
 

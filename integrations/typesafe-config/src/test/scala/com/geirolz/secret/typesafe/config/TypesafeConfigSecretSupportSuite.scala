@@ -4,7 +4,7 @@ import com.geirolz.secret.Secret
 import com.typesafe.config.{Config, ConfigFactory}
 import weaver.*
 
-class TypesafeConfigSecretSupportSuite extends SimpleIOSuite:
+object TypesafeConfigSecretSupportSuite extends SimpleIOSuite:
 
   pureTest("Read OneShotSecret string with typesafe config") {
 

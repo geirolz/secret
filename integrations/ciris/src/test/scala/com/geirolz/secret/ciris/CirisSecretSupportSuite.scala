@@ -5,7 +5,7 @@ import ciris.ConfigValue
 import com.geirolz.secret.Secret
 import weaver.*
 
-class CirisSecretSupportSuite extends SimpleIOSuite:
+object CirisSecretSupportSuite extends SimpleIOSuite:
 
   test("Read OneShotSecret string with ciris") {
 

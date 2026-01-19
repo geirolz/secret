@@ -3,7 +3,7 @@ package com.geirolz.secret
 import cats.effect.IO
 import weaver.{*, given}
 
-class SecretCatsEffectSuite extends SimpleIOSuite:
+object SecretCatsEffectSuite extends SimpleIOSuite:
 
   test("Secret should be usable as a resource") {
 

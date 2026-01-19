@@ -93,7 +93,7 @@ abstract class SecretApiSuite[S[X] <: SecretApi[X]](sbuilder: SecretBuilder[S])(
     expect(s1.euseAndDestroy(_ => ()).isRight)
   }
 
-  private def testSecretStrategyFor[T: Arbitrary: Eq: SecretStrategy: Show](using c: ClassTag[T]): Unit = {
+  private def testSecretStrategyFor[T: {Arbitrary, Eq, SecretStrategy, Show}](using c: ClassTag[T]): Unit = {
 
     val typeName = c.runtimeClass.getSimpleName.capitalize
 

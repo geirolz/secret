@@ -3,7 +3,7 @@ import sbt.project
 lazy val prjName                = "secret"
 lazy val prjDescription         = "A functional, type-safe and memory-safe class to handle secret values"
 lazy val org                    = "com.github.geirolz"
-lazy val scala33                = "3.3.5"
+lazy val scala33                = "3.7.4"
 lazy val supportedScalaVersions = List(scala33)
 
 inThisBuild(
@@ -207,7 +207,7 @@ def scalacSettings(scalaVersion: String): Seq[String] =
     "-language:higherKinds", // Allow higher-kinded types
     "-language:implicitConversions", // Allow definition of implicit functions called views
     "-language:dynamics",
-    "-Ykind-projector",
+    "-Xkind-projector",
     "-explain-types", // Explain type errors in more detail.
     "-Xfatal-warnings" // Fail the compilation if there are any warnings.
   )

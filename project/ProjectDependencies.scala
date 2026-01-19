@@ -7,13 +7,13 @@ object ProjectDependencies {
   private val catsVersion   = "2.13.0"
   private val bcryptVersion = "0.10.2"
   // test
-  private val weaverVersion = "0.8.3"
-  private val scalacheck    = "1.18.1"
+  private val weaverVersion = "0.8.4"
+  private val scalacheck    = "1.19.0"
   // integrations
-  private val catsEffectVersion     = "3.5.7"
-  private val pureConfigVersion     = "0.17.8"
-  private val typesafeConfigVersion = "1.4.3"
-  private val cirisVersion          = "3.7.0"
+  private val catsEffectVersion     = "3.7-4972921"
+  private val pureConfigVersion     = "0.17.9"
+  private val typesafeConfigVersion = "1.4.5"
+  private val cirisVersion          = "3.8.0"
 
   lazy val common: Seq[ModuleID] = Seq(
     // base
@@ -67,13 +67,13 @@ object ProjectDependencies {
 
     object Circe {
       lazy val dedicated: Seq[ModuleID] = List(
-        "io.circe" %% "circe-core" % "0.14.10"
+        "io.circe" %% "circe-core" % "0.14.15"
       )
     }
 
     object CatsXml {
       lazy val dedicated: Seq[ModuleID] = List(
-        "com.github.geirolz" %% "cats-xml" % "0.0.19"
+        "com.github.geirolz" %% "cats-xml" % "0.0.20"
       )
     }
   }

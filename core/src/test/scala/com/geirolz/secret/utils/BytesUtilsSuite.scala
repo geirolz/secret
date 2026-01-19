@@ -5,7 +5,7 @@ import weaver.SimpleIOSuite
 
 import java.nio.ByteBuffer
 
-class BytesUtilsSuite extends SimpleIOSuite:
+object BytesUtilsSuite extends SimpleIOSuite:
 
   pureTest("clearByteArray") {
     val bytes: Array[Byte] = Array[Byte](1, 2, 3, 4, 5)
