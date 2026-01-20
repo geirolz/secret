@@ -74,8 +74,13 @@ jobs:
       - name: Setup JDK
         uses: actions/setup-java@v5
         with:
-          distribution: "liberica"
+          distribution: temurin
           java-version: 17
+          cache: sbt
+
+      #------------ SBT ------------
+      - name: Setup SBT
+        uses: sbt/setup-sbt@v1.1.15
 
       #----------- CACHE -----------
       - name: Cache SBT
