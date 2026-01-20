@@ -87,7 +87,7 @@ open class SecretStrategyFactory private[secret] (algebra: SecretStrategyAlgebra
 
   given SecretStrategy[Boolean] =
     build(1)(
-      fillBuffer = (b: PlainValueBuffer) => (v: Boolean) => b.put(if (v) 1.toByte else 0.toByte),
+      fillBuffer = (b: PlainValueBuffer) => (v: Boolean) => b.put(if v then 1.toByte else 0.toByte),
       readBuffer = _.get == 1.toByte
     )
 

@@ -2,7 +2,7 @@ package com.geirolz.secret.util
 
 import weaver.SimpleIOSuite
 
-class TestLocation extends SimpleIOSuite:
+object TestLocation extends SimpleIOSuite:
 
   pureTest("Test Location") {
 
@@ -12,6 +12,6 @@ class TestLocation extends SimpleIOSuite:
       location.sourceFile.substring(location.sourceFile.lastIndexOf("/") + 1)
         == "TestLocation.scala"
     ) &&
-    expect(location.line == 7) &&
+    expect(location.line == 9) &&
     expect(location.column == 45)
   }

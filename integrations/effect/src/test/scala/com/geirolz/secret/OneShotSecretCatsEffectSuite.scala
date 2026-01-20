@@ -1,8 +1,9 @@
 package com.geirolz.secret
 
 import cats.effect.IO
+import weaver.*
 
-class OneShotSecretCatsEffectSuite extends munit.CatsEffectSuite:
+object OneShotSecretCatsEffectSuite extends SimpleIOSuite:
 
   test("OneShotSecret should be usable as a resourceDestroy") {
 
@@ -11,24 +12,16 @@ class OneShotSecretCatsEffectSuite extends munit.CatsEffectSuite:
     val test1: IO[Unit] =
       secret1
         .resourceDestroy[IO]
-        .use(value =>
-          IO(
-            assertEquals(obtained = value, expected = "password")
-          )
-        )
+        .use(value => IO(expect(value == "password")))
 
     for {
-      _ <- test1
-      _ <- IO(assert(secret1.isDestroyed))
-    } yield ()
+      _   <- test1
+      res <- IO(assert(secret1.isDestroyed))
+    } yield res
   }
 
   test("Secret should be usable as a resource directly") {
     OneShotSecret
       .resource[IO, String]("password")
-      .use(value =>
-        IO(
-          assertEquals(obtained = value, expected = "password")
-        )
-      )
+      .use(value => IO(expect(value == "password")))
   }

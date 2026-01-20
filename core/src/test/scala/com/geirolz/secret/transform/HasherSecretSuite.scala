@@ -7,7 +7,7 @@ import weaver.SimpleIOSuite
 import java.nio.charset.StandardCharsets
 import scala.util.Try
 
-class HasherSecretSuite extends SimpleIOSuite:
+object HasherSecretSuite extends SimpleIOSuite:
 
   // MD
   testHasher("md2")(

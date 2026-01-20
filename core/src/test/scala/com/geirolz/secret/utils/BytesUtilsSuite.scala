@@ -1,24 +1,25 @@
 package com.geirolz.secret.utils
 
 import com.geirolz.secret.util.BytesUtils
+import weaver.SimpleIOSuite
 
 import java.nio.ByteBuffer
 
-class BytesUtilsSuite extends SimpleIOSuite:
+object BytesUtilsSuite extends SimpleIOSuite:
 
-  test("clearByteArray") {
+  pureTest("clearByteArray") {
     val bytes: Array[Byte] = Array[Byte](1, 2, 3, 4, 5)
     BytesUtils.clearByteArray(bytes)
-    assertEquals(bytes.toList, List[Byte](0, 0, 0, 0, 0))
+    expect(bytes.toList == List[Byte](0, 0, 0, 0, 0))
   }
 
-  test("clearByteBuffer - HeapByteBuffer") {
+  pureTest("clearByteBuffer - HeapByteBuffer") {
     val buffer = ByteBuffer.wrap(Array[Byte](1, 2, 3, 4, 5))
     BytesUtils.clearByteBuffer(buffer)
-    assertEquals(buffer.array().toList, List[Byte](0, 0, 0, 0, 0))
+    expect(buffer.array().toList == List[Byte](0, 0, 0, 0, 0))
   }
 
-  test("clearByteBuffer - DirectByteBuffer") {
+  pureTest("clearByteBuffer - DirectByteBuffer") {
     val buffer = ByteBuffer.allocateDirect(5)
     buffer.put(Array[Byte](1, 2, 3, 4, 5))
     BytesUtils.clearByteBuffer(buffer)
@@ -26,5 +27,5 @@ class BytesUtilsSuite extends SimpleIOSuite:
     val array = new Array[Byte](buffer.capacity())
     buffer.rewind().get(array)
 
-    assertEquals(array.toList, List[Byte](0, 0, 0, 0, 0))
+    expect(array.toList == List[Byte](0, 0, 0, 0, 0))
   }

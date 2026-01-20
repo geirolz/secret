@@ -51,13 +51,12 @@ private[secret] object Vault:
       private var _destructionLocation: Option[Location] = None
 
       override final def evalUse[F[_]: MonadSecretError, U](f: T => F[U]): F[U] =
-        if (isDestroyed)
-          SecretDestroyed(_destructionLocation.getOrElse(Location.unknown)).raiseError[F, U]
-        else
-          f(SecretStrategy[T].deObfuscator(bufferTuple))
+        if isDestroyed
+        then SecretDestroyed(_destructionLocation.getOrElse(Location.unknown)).raiseError[F, U]
+        else f(SecretStrategy[T].deObfuscator(bufferTuple))
 
       override final def destroy()(using location: Location): Unit =
-        if (!isDestroyed)
+        if !isDestroyed then
           bufferTuple.destroy()
           bufferTuple = null
 
@@ -65,10 +64,8 @@ private[secret] object Vault:
           hashValue = null
 
           _destructionLocation =
-            if (recDestructionLocation)
-              Some(location)
-            else
-              None
+            if recDestructionLocation then Some(location)
+            else None
         else ()
 
       override final def destructionLocation: Option[Location] =
@@ -78,10 +75,8 @@ private[secret] object Vault:
         bufferTuple == null
 
       override final def hash: String =
-        if (isDestroyed)
-          destroyedTag
-        else
-          BytesUtils.asString(hashValue.value)
+        if isDestroyed then destroyedTag
+        else BytesUtils.asString(hashValue.value)
     }
 
     // clear the value when runtime shutdown
