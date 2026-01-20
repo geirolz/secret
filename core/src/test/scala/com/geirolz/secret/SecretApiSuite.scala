@@ -14,6 +14,30 @@ import scala.reflect.ClassTag
 import scala.util.Try
 import cats.Show
 
+/** This is the test suite for SecretApi functionality using various SecretStrategy factories.
+  *
+  * Secret strategies:
+  *   - Xor
+  *   - Plain
+  *
+  * Secret types:
+  *   - Secret
+  *   - OneShotSecret
+  *
+  * This test suite tests the following:
+  *   - SecretApi.useAndDestroy
+  *   - SecretApi.euseAndDestroy
+  *   - SecretApi.evalUseAndDestroy
+  *   - SecretApi.mapAndDestroy
+  *   - SecretApi.flatMapAndDestroy
+  *   - SecretApi.asHashedAndDestroy
+  *   - SecretApi.hash
+  *   - SecretApi.isHashEquals
+  *   - SecretApi.isValueEquals
+  *   - SecretApi.isDestroyed
+  *   - SecretApi.destructionLocation
+  */
+
 // xor
 object XorSecretApiSuite extends SecretApiSuite(SecretBuilder.secret)(using SecretStrategy.xorFactory)
 object XorOneShotSecretApiSuite extends SecretApiSuite(SecretBuilder.secret)(using SecretStrategy.xorFactory)
@@ -130,6 +154,22 @@ abstract class SecretApiSuite[S[X] <: SecretApi[X]](sbuilder: SecretBuilder[S])(
         whenSuccess(result1)(result => expect(result == value)) &&
         expect(result2.isFailure) &&
         expect(secret.isDestroyed)
+      }
+    }
+
+    test(s"${sbuilder.name}[$typeName] isValueEquals works properly") {
+      forall { (value: T) =>
+        val s1 = Secret(value)
+        val s2 = Secret(value)
+
+        val c1 = expect(s1.isValueEquals(s2))
+        s1.destroy()
+        val c2 = expect(!s1.isValueEquals(s2))
+        val c3 = expect(!s2.isValueEquals(s1))
+        s2.destroy()
+        val c4 = expect(!s1.isValueEquals(s2))
+
+        c1 && c2 && c3 && c4
       }
     }
   }

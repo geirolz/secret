@@ -17,29 +17,21 @@ import scala.reflect.ClassTag
 import scala.util.Try
 import cats.Show
 
+/** This is the test suite for Secret functionality using various SecretStrategy factories.
+  *
+  * For testing SecretApi check SecretApiSuite.
+  *
+  * This test suite tests the following:
+  *   - Secret.fromEnv
+  *   - Secret.deferred.fromEnv
+  *   - Secret without recDestructionLocation
+  *   - Option Secret getOrEmptySecret
+  *   - Either Secret getOrEmptySecret
+  */
 object XorSecretSuite extends SecretSuite(using SecretStrategy.xorFactory)
 object PlainSecretSuite extends SecretSuite(using SecretStrategy.plainFactory)
 
 abstract class SecretSuite(using SecretStrategyFactory) extends SimpleIOSuite with Checkers:
-
-  // numbers
-  testSecretStrategyFor[Short]
-  testSecretStrategyFor[Int]
-  testSecretStrategyFor[Long]
-  testSecretStrategyFor[Float]
-  testSecretStrategyFor[Double]
-  testSecretStrategyFor[BigInt]
-  testSecretStrategyFor[BigDecimal]
-
-  // others
-  testSecretStrategyFor[String]
-  testSecretStrategyFor[Boolean]
-  testSecretStrategyFor[Byte]
-  testSecretStrategyFor[Char]
-
-  // collections
-  testSecretStrategyFor[ArraySeq[Byte]]
-  testSecretStrategyFor[ArraySeq[Char]]
 
   test("Secret.fromEnv") {
     given SysEnv[IO] = SysEnv.fromMap[IO](Map("TEST" -> "VALUE"))
@@ -83,36 +75,4 @@ abstract class SecretSuite(using SecretStrategyFactory) extends SimpleIOSuite wi
       rightCheck <- rightSecret.getOrEmptySecret.useAndDestroy(value => expect(value == "TEST"))
       leftCheck  <- leftSecret.getOrEmptySecret.useAndDestroy(value => expect(value == ""))
     } yield rightCheck && leftCheck
-  }
-
-  private def testSecretStrategyFor[T: Arbitrary: Eq: SecretStrategy: Show](using
-    c: ClassTag[T]
-  ): Unit = {
-
-    val typeName = c.runtimeClass.getSimpleName.capitalize
-
-    test(s"Secret[$typeName] isValueEquals works properly") {
-      forall { (value: T) =>
-        val s1 = Secret(value)
-        val s2 = Secret(value)
-
-        val c1 = expect(s1.isValueEquals(s2))
-        s1.destroy()
-        val c2 = expect(!s1.isValueEquals(s2))
-        val c3 = expect(!s2.isValueEquals(s1))
-        s2.destroy()
-        val c4 = expect(!s1.isValueEquals(s2))
-
-        c1 && c2 && c3 && c4
-      }
-    }
-
-    // use
-    test(s"Secret[$typeName] obfuscate and de-obfuscate properly - use") {
-      forall { (value: T) =>
-        whenSuccess(
-          Secret(value).euse(identity)
-        )(result => expect(result == value))
-      }
-    }
   }
