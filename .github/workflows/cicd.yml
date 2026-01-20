@@ -97,7 +97,7 @@ jobs:
 
       #----------- RELEASE -----------
       - name: Release
-        run: sbt clean compile ci-release
+        run: sbt ci-release
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}

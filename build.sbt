@@ -1,4 +1,5 @@
 import sbt.project
+import sbt.ScmInfo
 
 lazy val prjName                = "secret"
 lazy val prjDescription         = "A functional, type-safe and memory-safe class to handle secret values"
@@ -17,6 +18,12 @@ inThisBuild(
         "David Geirola",
         "david.geirola@gmail.com",
         url("https://github.com/geirolz")
+      )
+    ),
+    scmInfo := Some(
+      ScmInfo(
+        url(s"https://github.com/geirolz/$prjName"),
+        s"scm:git:https://github.com/geirolz/$prjName.git"
       )
     )
   )
