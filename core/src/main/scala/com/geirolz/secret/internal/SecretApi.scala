@@ -179,7 +179,7 @@ private[secret] transparent trait SecretCompanionApi[SecretTpe[X] <: SecretApi[X
     SecretStrategy.plainFactory { apply(value) }
 
   /** Create a secret from the environment variable. */
-  def fromEnv[F[_]: {MonadThrow, SysEnv}](name: String)(using SecretStrategy[String], Hasher): F[SecretTpe[String]] =
+  def fromEnv[F[_]: MonadThrow: SysEnv](name: String)(using SecretStrategy[String], Hasher): F[SecretTpe[String]] =
     SysEnv[F]
       .getEnv(name)
       .flatMap(_.liftTo[F](new NoSuchElementException(s"Missing environment variable [$name]")))
@@ -189,22 +189,22 @@ private[secret] transparent trait SecretCompanionApi[SecretTpe[X] <: SecretApi[X
 private[secret] transparent sealed trait SecretApiSyntax[SecretTpe[X] <: SecretApi[X]]:
   this: SecretCompanionApi[SecretTpe] =>
 
-  extension [T: {SecretStrategy, Monoid}](optSecret: Option[SecretTpe[T]])(using Hasher)
+  extension [T: SecretStrategy: Monoid](optSecret: Option[SecretTpe[T]])(using Hasher)
     def getOrEmptySecret: SecretTpe[T] =
       optSecret.getOrElse(this.apply(Monoid[T].empty))
 
-  extension [L, T: {SecretStrategy, Monoid}](eSecret: Either[L, SecretTpe[T]])(using Hasher)
+  extension [L, T: SecretStrategy: Monoid](eSecret: Either[L, SecretTpe[T]])(using Hasher)
     def getOrEmptySecret: SecretTpe[T] =
       eSecret.toOption.getOrEmptySecret
 
 /** Instances for the SecretPlatform */
 private[secret] transparent sealed trait SecretApiInstances[SecretTpe[X] <: SecretApi[X]]:
 
-  given [T] => Hashing[SecretTpe[T]] =
+  given [T]: Hashing[SecretTpe[T]] =
     Hashing.fromFunction(_.hashCode())
 
-  given [T] => Eq[SecretTpe[T]] =
+  given [T]: Eq[SecretTpe[T]] =
     Eq.fromUniversalEquals
 
-  given [T] => Show[SecretTpe[T]] =
+  given [T]: Show[SecretTpe[T]] =
     Show.fromToString

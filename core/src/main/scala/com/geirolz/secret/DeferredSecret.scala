@@ -77,7 +77,9 @@ object DeferredSecret:
     DeferredSecret.fromSecret(MonadThrow[F].raiseError(e))
 
   /** Create a DeferredSecret that reads the specified environment variable every time it is used. */
-  def fromEnv[F[_]: MonadThrow](name: String)(using SecretStrategy[String], Hasher): Secret.Deferred[F, String] =
+  def fromEnv[F[_]: MonadThrow, SysEnv](
+    name: String
+  )(using SecretStrategy[String], Hasher): Secret.Deferred[F, String] =
     DeferredSecret.fromSecret(Secret.fromEnv[F](name))
 
   /** Create a DeferredSecret from a Secret.

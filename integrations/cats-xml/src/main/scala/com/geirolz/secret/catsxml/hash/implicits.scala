@@ -8,5 +8,5 @@ import com.geirolz.secret.Secret
 export com.geirolz.secret.catsxml.given_Decoder_Secret
 export com.geirolz.secret.catsxml.given_Decoder_OneShot
 
-given [S[X] <: SecretApi[X], T] => Encoder[S[T]] =
+given [S[X] <: SecretApi[X], T]: Encoder[S[T]] =
   Encoder.encodeString.contramap(_.hash)

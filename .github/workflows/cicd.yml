@@ -22,9 +22,6 @@ jobs:
           - scala: 3.3.3
             name: Scala3_3
             test-tasks: scalafmtCheck gen-doc coverage test coverageReport
-          - scala: 3.7.4
-            name: Scala3_7
-            test-tasks: scalafmtCheck gen-doc coverage test coverageReport
 
     steps:
       - uses: actions/checkout@v6
