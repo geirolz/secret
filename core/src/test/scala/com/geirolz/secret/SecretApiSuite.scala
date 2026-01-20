@@ -46,14 +46,17 @@ abstract class SecretApiSuite[S[X] <: SecretApi[X]](sbuilder: SecretBuilder[S])(
   testSecretStrategyFor[ArraySeq[Char]]
 
   pureTest("Simple Secret String") {
-    val s1 = sbuilder("TEST")
-    expect(s1.euseAndDestroy(_ => ()).isRight)
+    val s1     = sbuilder("TEST")
+    val result = s1.euseAndDestroy(_ => ())
+    expect(result.isRight)
   }
 
   pureTest("Simple Secret String destroyed") {
-    val s1 = sbuilder("TEST")
-    expect(s1.euseAndDestroy(_ => ()).isRight) &&
-    expect(s1.euseAndDestroy(_ => ()).isLeft)
+    val s1      = sbuilder("TEST")
+    val result1 = s1.euseAndDestroy(_ => ())
+    val result2 = s1.euseAndDestroy(_ => ())
+
+    expect(result1.isRight) && expect(result2.isLeft)
   }
 
   pureTest("Simple Secret with long String") {
@@ -90,7 +93,8 @@ abstract class SecretApiSuite[S[X] <: SecretApi[X]](sbuilder: SecretBuilder[S])(
          |""".stripMargin
     )
 
-    expect(s1.euseAndDestroy(_ => ()).isRight)
+    val result = s1.euseAndDestroy(_ => ())
+    expect(result.isRight)
   }
 
   private def testSecretStrategyFor[T: Arbitrary: Eq: SecretStrategy: Show](using c: ClassTag[T]): Unit = {
@@ -112,16 +116,19 @@ abstract class SecretApiSuite[S[X] <: SecretApi[X]](sbuilder: SecretBuilder[S])(
 
     test(s"${sbuilder.name}[$typeName] hashCode is different from the value one") {
       forall { (value: T) =>
-        expect(sbuilder(value).hashCode() != value.hashCode())
+        val secretHashCode = sbuilder(value).hashCode()
+        expect(secretHashCode != value.hashCode())
       }
     }
 
     test(s"${sbuilder.name}[$typeName] obfuscate and de-obfuscate properly - useAndDestroy") {
       forall { (value: T) =>
         val secret: S[T] = sbuilder(value)
+        val result1      = secret.euseAndDestroy(identity)
+        val result2      = secret.useAndDestroy[Try, Int](_.hashCode())
 
-        whenSuccess(secret.euseAndDestroy[Unit](identity))(result => expect(result == value)) &&
-        expect(secret.useAndDestroy[Try, Int](_.hashCode()).isFailure) &&
+        whenSuccess(result1)(result => expect(result == value)) &&
+        expect(result2.isFailure) &&
         expect(secret.isDestroyed)
       }
     }

@@ -17,8 +17,8 @@ import scala.reflect.ClassTag
 import scala.util.Try
 import cats.Show
 
-class XorSecretSuite extends SecretSuite(using SecretStrategy.xorFactory)
-class PlainSecretSuite extends SecretSuite(using SecretStrategy.plainFactory)
+object XorSecretSuite extends SecretSuite(using SecretStrategy.xorFactory)
+object PlainSecretSuite extends SecretSuite(using SecretStrategy.plainFactory)
 
 abstract class SecretSuite(using SecretStrategyFactory) extends SimpleIOSuite with Checkers:
 
@@ -111,8 +111,7 @@ abstract class SecretSuite(using SecretStrategyFactory) extends SimpleIOSuite wi
     test(s"Secret[$typeName] obfuscate and de-obfuscate properly - use") {
       forall { (value: T) =>
         whenSuccess(
-          Secret(value)
-            .euse[Unit](identity)
+          Secret(value).euse(identity)
         )(result => expect(result == value))
       }
     }
