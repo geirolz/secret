@@ -8,8 +8,9 @@ lazy val supportedScalaVersions = List(scala33)
 
 inThisBuild(
   List(
-    homepage := Some(url(s"https://github.com/geirolz/$prjName")),
-    licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    organization := org,
+    homepage     := Some(url(s"https://github.com/geirolz/$prjName")),
+    licenses     := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     developers := List(
       Developer(
         "DavidGeirola",
