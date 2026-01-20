@@ -143,6 +143,7 @@ def module(modName: String)(
     case Some(pubName) =>
       Seq(
         moduleName     := pubName,
+        publishTo      := sonatypePublishToBundle.value,
         publish / skip := false
       )
     case None => noPublishSettings
