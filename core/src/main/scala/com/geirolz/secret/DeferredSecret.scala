@@ -5,6 +5,7 @@ import cats.syntax.all.*
 import com.geirolz.secret.strategy.SecretStrategy
 import com.geirolz.secret.transform.Hasher
 import com.geirolz.secret.util.Location
+import com.geirolz.secret.util.SysEnv
 
 /** Specialized version of `Secret` that allows to defer the acquisition of the secret value. This is useful when you
   * want to acquire the secret value only when it's needed and not before ( for instance, an HTTP call to a secret
@@ -77,7 +78,7 @@ object DeferredSecret:
     DeferredSecret.fromSecret(MonadThrow[F].raiseError(e))
 
   /** Create a DeferredSecret that reads the specified environment variable every time it is used. */
-  def fromEnv[F[_]: MonadThrow, SysEnv](
+  def fromEnv[F[_]: MonadThrow: SysEnv](
     name: String
   )(using SecretStrategy[String], Hasher): Secret.Deferred[F, String] =
     DeferredSecret.fromSecret(Secret.fromEnv[F](name))

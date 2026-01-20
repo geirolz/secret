@@ -101,7 +101,7 @@ open class SecretStrategyFactory private[secret] (algebra: SecretStrategyAlgebra
   given secretStrategyForBytes: SecretStrategy[Array[Byte]] =
     directByteBufferForArray(identity, identity)
 
-  given [T: ClassTag](using ss: SecretStrategy[String]): SecretStrategy[Array[Char]] =
+  given secretStrategyForChars(using ss: SecretStrategy[String]): SecretStrategy[Array[Char]] =
     ss.bimap(new String(_), _.toCharArray)
 
   given [T: ClassTag](using ss: SecretStrategy[Array[T]]): SecretStrategy[ArraySeq[T]] =

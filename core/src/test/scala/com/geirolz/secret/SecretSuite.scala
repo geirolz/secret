@@ -85,7 +85,7 @@ abstract class SecretSuite(using SecretStrategyFactory) extends SimpleIOSuite wi
     } yield rightCheck && leftCheck
   }
 
-  private def testSecretStrategyFor[T: {Arbitrary, Eq, SecretStrategy, Show}](using
+  private def testSecretStrategyFor[T: Arbitrary: Eq: SecretStrategy: Show](using
     c: ClassTag[T]
   ): Unit = {
 
