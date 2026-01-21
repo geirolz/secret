@@ -28,12 +28,12 @@ object SecretCatsXmlSuite extends SimpleIOSuite:
     val secret: Secret[String] = Secret("secret_value")
     val result: Xml            = secret.toXml
 
-    assert(result == Xml.string(secretTag))
+    expect(result == Xml.string(secretTag))
   }
 
   pureTest("Secret.OneShot should be encoded to json") {
     val secret: Secret.OneShot[String] = Secret.oneShot("secret_value")
     val result: Xml                    = secret.toXml
 
-    assert(result == Xml.string(secretTag))
+    expect(result == Xml.string(secretTag))
   }

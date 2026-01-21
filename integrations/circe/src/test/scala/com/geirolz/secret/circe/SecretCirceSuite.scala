@@ -27,12 +27,12 @@ object SecretCirceSuite extends SimpleIOSuite:
     val secret: Secret[String] = Secret("secret_value")
     val result: Json           = secret.asJson
 
-    assert(result == Json.fromString(secretTag))
+    expect(result == Json.fromString(secretTag))
   }
 
   pureTest("Secret.OneShot should be encoded to json") {
     val secret: Secret.OneShot[String] = Secret.oneShot("secret_value")
     val result: Json                   = secret.asJson
 
-    assert(result == Json.fromString(secretTag))
+    expect(result == Json.fromString(secretTag))
   }

@@ -16,7 +16,7 @@ object OneShotSecretCatsEffectSuite extends SimpleIOSuite:
 
     for {
       _   <- test1
-      res <- IO(assert(secret1.isDestroyed))
+      res <- IO(expect(secret1.isDestroyed))
     } yield res
   }
 

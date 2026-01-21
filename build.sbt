@@ -34,13 +34,13 @@ lazy val root: Project = project
   .settings(
     copyReadMe := IO.copyFile(file("docs/compiled/README.md"), file("README.md"))
   )
-  .aggregate(core, encrypt, effect, docs, pureconfig, typesafeConfig, ciris, circe, `cats-xml`)
+  .aggregate(core, encrypt, effect, docs, pureconfig, typesafeConfig, ciris, circe, `cats-xml`, zio, `zio-json`)
 
 lazy val docs: Project =
   project
     .in(file("docs"))
     .enablePlugins(MdocPlugin)
-    .dependsOn(core, effect, pureconfig, typesafeConfig, ciris, circe, `cats-xml`)
+    .dependsOn(core, effect, pureconfig, typesafeConfig, ciris, circe, `cats-xml`, zio, `zio-json`)
     .settings(
       baseSettings,
       noPublishSettings,
@@ -130,6 +130,24 @@ lazy val `cats-xml`: Project =
   ).dependsOn(core)
     .settings(
       libraryDependencies ++= ProjectDependencies.Integrations.CatsXml.dedicated
+    )
+
+lazy val zio: Project =
+  module("zio")(
+    folder    = s"$integrationsFolder/zio",
+    publishAs = Some(subProjectName("zio"))
+  ).dependsOn(core)
+    .settings(
+      libraryDependencies ++= ProjectDependencies.Integrations.Zio.dedicated
+    )
+
+lazy val `zio-json`: Project =
+  module("zio-json")(
+    folder    = s"$integrationsFolder/zio-json",
+    publishAs = Some(subProjectName("zio-json"))
+  ).dependsOn(core)
+    .settings(
+      libraryDependencies ++= ProjectDependencies.Integrations.ZioJson.dedicated
     )
 
 //=============================== MODULES UTILS ===============================

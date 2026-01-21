@@ -32,7 +32,7 @@ object TypesafeConfigSecretSupportSuite extends SimpleIOSuite:
 
     val result: Secret[String] = config.getSecret[String]("conf.secret-value")
 
-    assert(
+    expect(
       result
         .euse(secretValue => {
           expect(secretValue == "my-super-secret-password")
