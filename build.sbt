@@ -18,7 +18,8 @@ inThisBuild(
         "david.geirola@gmail.com",
         url("https://github.com/geirolz")
       )
-    )
+    ),
+    sonatypeCredentialHost := "s01.oss.sonatype.org"
   )
 )
 
