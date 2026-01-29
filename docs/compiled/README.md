@@ -20,7 +20,7 @@ Please, drop a ⭐️ if you are interested in this project and you want to supp
 > Scala 3 only, Scala 2 is not supported.
 
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.11"
+libraryDependencies += "com.github.geirolz" %% "secret" % "0.0.15"
 ```
 
 ## Usage
@@ -34,7 +34,7 @@ import com.geirolz.secret.*
  val oneShotSecret: Secret.OneShot[String] = Secret.oneShot("password") // one shot secret
 // oneShotSecret: OneShotSecret[String] = ** SECRET **
  val deferredSecret: Secret.Deferred[Try, String] = Secret.deferred(Try("password")) // deferred secret
-// deferredSecret: DeferredSecret[[T >: Nothing <: Any] => Try[T], String] = com.geirolz.secret.DeferredSecret$$anon$1@2ed6f149
+// deferredSecret: DeferredSecret[[T >: Nothing <: Any] => Try[T], String] = com.geirolz.secret.DeferredSecret$$anon$1@174f2026
 ```
 
 ## Obfuscation
@@ -60,14 +60,12 @@ case class Database(password: String)
 val secretString: Secret[String]  = Secret("password")
 // secretString: Secret[String] = ** SECRET **
 val database: Either[SecretDestroyed, Database] = secretString.euseAndDestroy(password => Database(password))
-// database: Either[SecretDestroyed, Database] = Right(
-//   value = Database(password = "password")
-// )
+// database: Either[SecretDestroyed, Database] = Right(Database("password"))
 
 // if you try to access the secret value once used, you'll get an error
 secretString.euse(println(_))
 // res2: Either[SecretDestroyed, Unit] = Left(
-//   value = SecretDestroyed(destructionLocation = README.md:50:113)
+//   SecretDestroyed(README.md:50:109)
 // )
 ```
 
@@ -77,7 +75,7 @@ These integrations aim to enhance the functionality and capabilities of `Secret`
 
 #### Cats Effect
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.11"
+libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.15"
 ```
 
 ```scala
@@ -98,7 +96,7 @@ val res3: Resource[IO, String] = Secret.resource[IO, String]("password")
 
 #### Pureconfig
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.11"
+libraryDependencies += "com.github.geirolz" %% "secret-pureconfig" % "0.0.15"
 ```
 
 Just provides the `ConfigReader` instance for `Secret[T]` type.
@@ -108,7 +106,7 @@ import com.geirolz.secret.pureconfig.given
 ```
 #### Typesafe Config
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.11"
+libraryDependencies += "com.github.geirolz" %% "secret-typesafe-config" % "0.0.15"
 ```
 ```scala
 import com.geirolz.secret.typesafe.config.given
@@ -116,7 +114,7 @@ import com.geirolz.secret.typesafe.config.given
 
 #### Ciris
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.11"
+libraryDependencies += "com.github.geirolz" %% "secret-ciris" % "0.0.15"
 ```
 ```scala
 import com.geirolz.secret.ciris.given
@@ -126,7 +124,7 @@ import com.geirolz.secret.ciris.given
 Provides the json `Decoder` instance for `Secret[T]` and `OneShotSecret[T]` type.
 
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-circe" % "0.0.11"
+libraryDependencies += "com.github.geirolz" %% "secret-circe" % "0.0.15"
 ```
 ```scala
 import com.geirolz.secret.circe.given
@@ -136,7 +134,7 @@ import com.geirolz.secret.circe.given
 Provides the xml `Decoder` instance for `Secret[T]` and `OneShotSecret[T]` type.
 
 ```sbt
-libraryDependencies += "com.github.geirolz" %% "secret-cats-xml" % "0.0.11"
+libraryDependencies += "com.github.geirolz" %% "secret-cats-xml" % "0.0.15"
 ```
 ```scala
 import com.geirolz.secret.catsxml.given
@@ -164,7 +162,7 @@ given SecretStrategy[String] = SecretStrategy[String](
 )
 
 Secret("my_password").euse(secret => secret)
-// res10: Either[SecretDestroyed, String] = Right(value = "CUSTOM")
+// res10: Either[SecretDestroyed, String] = Right("CUSTOM")
 ```
 
 ## Custom Obfuscation Strategy algebra
@@ -187,11 +185,11 @@ val myCustomAlgebra = new SecretStrategyAlgebra:
     
     final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
       DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp11$$anon$12@6512f34b
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp11$$anon$12@7e36f96f
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@5be15840
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@55acbc8e
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope
@@ -199,13 +197,13 @@ val myCustomStrategyFactory = myCustomAlgebra.newFactory
 import myCustomStrategyFactory.given
 
 Secret("my_password").euse(secret => secret)
-// res12: Either[SecretDestroyed, String] = Right(value = "my_password")
+// res12: Either[SecretDestroyed, String] = Right("my_password")
 
 // or restricted to a specific scope
 myCustomStrategyFactory {
   Secret("my_password").euse(secret => secret)
 }
-// res13: Either[SecretDestroyed, String] = Right(value = "my_password")
+// res13: Either[SecretDestroyed, String] = Right("my_password")
 ```
 
 ## Contributing
