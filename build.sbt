@@ -40,7 +40,7 @@ lazy val docs: Project =
   project
     .in(file("docs"))
     .enablePlugins(MdocPlugin)
-    .dependsOn(core, effect, pureconfig, typesafeConfig, ciris, circe, `cats-xml`, zio, `zio-json`)
+    .dependsOn(core, encrypt, effect, pureconfig, typesafeConfig, ciris, circe, `cats-xml`, zio, `zio-json`)
     .settings(
       baseSettings,
       noPublishSettings,

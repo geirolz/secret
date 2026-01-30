@@ -34,7 +34,7 @@ import com.geirolz.secret.*
  val oneShotSecret: Secret.OneShot[String] = Secret.oneShot("password") // one shot secret
 // oneShotSecret: OneShotSecret[String] = ** SECRET **
  val deferredSecret: Secret.Deferred[Try, String] = Secret.deferred(Try("password")) // deferred secret
-// deferredSecret: DeferredSecret[[T >: Nothing <: Any] => Try[T], String] = com.geirolz.secret.DeferredSecret$$anon$1@58b02a26
+// deferredSecret: DeferredSecret[[T >: Nothing <: Any] => Try[T], String] = com.geirolz.secret.DeferredSecret$$anon$1@10d4c821
 ```
 
 ## Obfuscation
@@ -184,6 +184,41 @@ libraryDependencies += "com.github.geirolz" %% "secret-cats-xml" % "0.0.15"
 import com.geirolz.secret.catsxml.given
 ```
 
+### Modules 
+
+#### Encrypt
+
+The encrypt module allows you to transform a `Secret[String]` (or one-shot secret) into an encrypted secret of another type, for example wrapping your secrets in strongly encrypted values. This is achieved through the `Encryptor[O]` typeclass, which lets you define how to encrypt a `String` into your protected output type `O`. With the provided extension methods, you can easily encrypt secrets while keeping them safe from accidental leaks—optionally destroying the original, unencrypted secret in the process.
+
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret-encrypt" % "0.0.15"
+```
+
+**Common use case:**  
+Suppose you want to ensure that the actual plain secret value never leaves the memory in unencrypted form. You define an `Encryptor` for your ciphertext type (e.g., `EncryptedValue` or just an `Array[Byte]`). Then, you call `encrypt`, `encryptDeferred`, `encryptAndDestroy`, or `encryptAndDestroyDeferred` on your secret.
+
+**Example:**
+```scala
+import com.geirolz.secret.*
+import com.geirolz.secret.encrypt.*
+import scala.util.Try
+
+// Conceptual encrypted value type
+case class MyEncrypted(bytes: Array[Byte])
+
+// Your custom Encryptor implementation
+val myEncryptor: Encryptor[MyEncrypted] = new Encryptor[MyEncrypted] {
+  def encrypt(t: String): Try[MyEncrypted] =
+    Try(MyEncrypted(t.getBytes.reverse))
+}
+
+val original: Secret[String] = Secret("my_password")
+// Encrypt, but keep the original
+val encrypted: Try[Secret[MyEncrypted]] = original.encrypt(myEncryptor)
+
+// Encrypt and destroy the original secret immediately
+val encryptedAndDestroyed: Try[Secret[MyEncrypted]] = original.encryptAndDestroy(myEncryptor)
+```
 
 ## Adopters
 
@@ -229,11 +264,11 @@ val myCustomAlgebra = new SecretStrategyAlgebra:
     
     final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
       DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp13$$anon$16@69390953
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp13$$anon$16@1344c12c
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@24cba78
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@41aa6ef6
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope

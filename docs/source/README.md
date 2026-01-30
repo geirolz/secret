@@ -176,6 +176,41 @@ libraryDependencies += "com.github.geirolz" %% "secret-cats-xml" % "@VERSION@"
 import com.geirolz.secret.catsxml.given
 ```
 
+### Modules 
+
+#### Encrypt
+
+The encrypt module allows you to transform a `Secret[String]` (or one-shot secret) into an encrypted secret of another type, for example wrapping your secrets in strongly encrypted values. This is achieved through the `Encryptor[O]` typeclass, which lets you define how to encrypt a `String` into your protected output type `O`. With the provided extension methods, you can easily encrypt secrets while keeping them safe from accidental leaks—optionally destroying the original, unencrypted secret in the process.
+
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret-encrypt" % "@VERSION@"
+```
+
+**Common use case:**  
+Suppose you want to ensure that the actual plain secret value never leaves the memory in unencrypted form. You define an `Encryptor` for your ciphertext type (e.g., `EncryptedValue` or just an `Array[Byte]`). Then, you call `encrypt`, `encryptDeferred`, `encryptAndDestroy`, or `encryptAndDestroyDeferred` on your secret.
+
+**Example:**
+```scala
+import com.geirolz.secret.*
+import com.geirolz.secret.encrypt.*
+import scala.util.Try
+
+// Conceptual encrypted value type
+case class MyEncrypted(bytes: Array[Byte])
+
+// Your custom Encryptor implementation
+val myEncryptor: Encryptor[MyEncrypted] = new Encryptor[MyEncrypted] {
+  def encrypt(t: String): Try[MyEncrypted] =
+    Try(MyEncrypted(t.getBytes.reverse))
+}
+
+val original: Secret[String] = Secret("my_password")
+// Encrypt, but keep the original
+val encrypted: Try[Secret[MyEncrypted]] = original.encrypt(myEncryptor)
+
+// Encrypt and destroy the original secret immediately
+val encryptedAndDestroyed: Try[Secret[MyEncrypted]] = original.encryptAndDestroy(myEncryptor)
+```
 
 ## Adopters
 
