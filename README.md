@@ -34,7 +34,7 @@ import com.geirolz.secret.*
  val oneShotSecret: Secret.OneShot[String] = Secret.oneShot("password") // one shot secret
 // oneShotSecret: OneShotSecret[String] = ** SECRET **
  val deferredSecret: Secret.Deferred[Try, String] = Secret.deferred(Try("password")) // deferred secret
-// deferredSecret: DeferredSecret[[T >: Nothing <: Any] => Try[T], String] = com.geirolz.secret.DeferredSecret$$anon$1@174f2026
+// deferredSecret: DeferredSecret[[T >: Nothing <: Any] => Try[T], String] = com.geirolz.secret.DeferredSecret$$anon$1@58b02a26
 ```
 
 ## Obfuscation
@@ -73,6 +73,15 @@ secretString.euse(println(_))
 
 These integrations aim to enhance the functionality and capabilities of `Secret` type making it easier to use in different contexts.
 
+- [Cats Effect](#cats-effect)
+- [ZIO](#zio)
+- [Pureconfig](#pureconfig)
+- [Typesafe Config](#typesafe-config)
+- [Ciris](#ciris)
+- [Circe](#circe)
+- [ZIO JSON](#zio-json)
+- [Cats-xml](#cats-xml)
+
 #### Cats Effect
 ```sbt
 libraryDependencies += "com.github.geirolz" %% "secret-effect" % "0.0.15"
@@ -92,6 +101,31 @@ val res2: Resource[IO, String] = s.resourceDestroy[IO]
 
 // this will destroy the secret because it uses the original one
 val res3: Resource[IO, String] = Secret.resource[IO, String]("password")
+```
+
+#### ZIO
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret-zio" % "0.0.15"
+```
+
+Provides `ZManaged` integration for `Secret`, `OneShotSecret`, and `DeferredSecret` types.
+
+```scala
+import com.geirolz.secret.*
+import com.geirolz.secret.zio.*
+import _root_.zio.{Task, ZIO}
+import _root_.zio.managed.ZManaged
+
+val s: Secret[String] = Secret("password")
+
+// this will not destroy the secret because it uses a duplicated one
+val managed: ZManaged[Any, Throwable, String] = s.managed
+
+// this will destroy the secret because it uses the original one
+val managedDestroy: ZManaged[Any, Throwable, String] = s.managedDestroy
+
+// this will destroy the secret because it uses the original one
+val managedFromValue: ZManaged[Any, Throwable, String] = Secret.managed("password")
 ```
 
 #### Pureconfig
@@ -130,6 +164,16 @@ libraryDependencies += "com.github.geirolz" %% "secret-circe" % "0.0.15"
 import com.geirolz.secret.circe.given
 ```
 
+#### ZIO JSON
+Provides the json `JsonDecoder`, `JsonEncoder`, and `JsonCodec` instances for `Secret[T]` and `OneShotSecret[T]` types.
+
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret-zio-json" % "0.0.15"
+```
+```scala
+import com.geirolz.secret.ziojson.given
+```
+
 #### Cats-xml
 Provides the xml `Decoder` instance for `Secret[T]` and `OneShotSecret[T]` type.
 
@@ -162,7 +206,7 @@ given SecretStrategy[String] = SecretStrategy[String](
 )
 
 Secret("my_password").euse(secret => secret)
-// res10: Either[SecretDestroyed, String] = Right("CUSTOM")
+// res12: Either[SecretDestroyed, String] = Right("CUSTOM")
 ```
 
 ## Custom Obfuscation Strategy algebra
@@ -185,11 +229,11 @@ val myCustomAlgebra = new SecretStrategyAlgebra:
     
     final def deObfuscator[P](f: PlainValueBuffer => P): DeObfuscator[P] =
       DeObfuscator.of { bufferTuple => f(bufferTuple.roObfuscatedBuffer) }
-// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp11$$anon$12@7e36f96f
+// myCustomAlgebra: SecretStrategyAlgebra = repl.MdocSession$MdocApp13$$anon$16@69390953
 
 // build factory based on the algebra
 val myCustomStrategyFactory = myCustomAlgebra.newFactory
-// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@55acbc8e
+// myCustomStrategyFactory: SecretStrategyFactory = com.geirolz.secret.strategy.SecretStrategyFactory@24cba78
 
 // ----------------------------- USAGE -----------------------------
 // implicitly in the scope
@@ -197,13 +241,13 @@ val myCustomStrategyFactory = myCustomAlgebra.newFactory
 import myCustomStrategyFactory.given
 
 Secret("my_password").euse(secret => secret)
-// res12: Either[SecretDestroyed, String] = Right("my_password")
+// res14: Either[SecretDestroyed, String] = Right("my_password")
 
 // or restricted to a specific scope
 myCustomStrategyFactory {
   Secret("my_password").euse(secret => secret)
 }
-// res13: Either[SecretDestroyed, String] = Right("my_password")
+// res15: Either[SecretDestroyed, String] = Right("my_password")
 ```
 
 ## Contributing

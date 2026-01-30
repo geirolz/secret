@@ -104,8 +104,9 @@ Provides `ZManaged` integration for `Secret`, `OneShotSecret`, and `DeferredSecr
 
 ```scala mdoc:reset:silent
 import com.geirolz.secret.*
-import zio.{Task, ZIO}
-import zio.managed.ZManaged
+import com.geirolz.secret.zio.*
+import _root_.zio.{Task, ZIO}
+import _root_.zio.managed.ZManaged
 
 val s: Secret[String] = Secret("password")
 
