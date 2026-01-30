@@ -11,12 +11,8 @@ object SecretZioSuite extends SimpleIOSuite:
 
   test("Secret should be usable as scoped") {
     val secret1: Secret[String] = Secret("password")
-
-    ZIO
-      .scoped {
-        secret1.scoped
-          .map(value => expect(value == "password"))
-      }
+    secret1.managed
+      .use(value => ZIO.succeed(expect(value == "password")))
       .as(expect(!secret1.isDestroyed))
       .mapError(identity[Throwable])
       .toEffect[cats.effect.IO]
@@ -24,20 +20,15 @@ object SecretZioSuite extends SimpleIOSuite:
 
   test("Secret should be usable as scopedDestroy") {
     val secret1: Secret[String] = Secret("password")
-    ZIO
-      .scoped {
-        secret1.scopedDestroy.flatMap(value => ZIO.succeed(expect(value == "password")))
-      }
+    secret1.managedDestroy
+      .use(value => ZIO.succeed(expect(value == "password")))
       .as(expect(secret1.isDestroyed))
       .toEffect[cats.effect.IO]
   }
 
   test("Secret should be usable as scoped directly") {
-    ZIO
-      .scoped {
-        Secret
-          .scoped[String]("password")
-          .flatMap(value => ZIO.succeed(expect(value == "password")))
-      }
+    Secret
+      .managed[String]("password")
+      .use(value => ZIO.succeed(expect(value == "password")))
       .toEffect[cats.effect.IO]
   }

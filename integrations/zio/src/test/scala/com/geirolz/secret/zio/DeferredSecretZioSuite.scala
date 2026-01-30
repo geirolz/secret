@@ -9,29 +9,23 @@ import weaver.*
 object DeferredSecretZioSuite extends SimpleIOSuite:
 
   test("DeferredSecret should be usable as scoped") {
-    ZIO
-      .scoped {
-        DeferredSecret
-          .scoped[String](ZIO.succeed("password"))
-          .flatMap(value =>
-            ZIO.succeed(
-              expect(value == "password")
-            )
-          )
-      }
+    DeferredSecret
+      .managed[String](ZIO.succeed("password"))
+      .use(value =>
+        ZIO.succeed(
+          expect(value == "password")
+        )
+      )
       .toEffect[cats.effect.IO]
   }
 
   test("DeferredSecret should be usable as scoped directly") {
-    ZIO
-      .scoped {
-        DeferredSecret
-          .scoped[String](ZIO.succeed("password"))
-          .flatMap(value =>
-            ZIO.succeed(
-              expect(value == "password")
-            )
-          )
-      }
+    DeferredSecret
+      .managed[String](ZIO.succeed("password"))
+      .use(value =>
+        ZIO.succeed(
+          expect(value == "password")
+        )
+      )
       .toEffect[cats.effect.IO]
   }
