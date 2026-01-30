@@ -65,6 +65,15 @@ secretString.euse(println(_))
 
 These integrations aim to enhance the functionality and capabilities of `Secret` type making it easier to use in different contexts.
 
+- [Cats Effect](#cats-effect)
+- [ZIO](#zio)
+- [Pureconfig](#pureconfig)
+- [Typesafe Config](#typesafe-config)
+- [Ciris](#ciris)
+- [Circe](#circe)
+- [ZIO JSON](#zio-json)
+- [Cats-xml](#cats-xml)
+
 #### Cats Effect
 ```sbt
 libraryDependencies += "com.github.geirolz" %% "secret-effect" % "@VERSION@"
@@ -84,6 +93,30 @@ val res2: Resource[IO, String] = s.resourceDestroy[IO]
 
 // this will destroy the secret because it uses the original one
 val res3: Resource[IO, String] = Secret.resource[IO, String]("password")
+```
+
+#### ZIO
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret-zio" % "@VERSION@"
+```
+
+Provides `ZManaged` integration for `Secret`, `OneShotSecret`, and `DeferredSecret` types.
+
+```scala mdoc:reset:silent
+import com.geirolz.secret.*
+import zio.{Task, ZIO}
+import zio.managed.ZManaged
+
+val s: Secret[String] = Secret("password")
+
+// this will not destroy the secret because it uses a duplicated one
+val managed: ZManaged[Any, Throwable, String] = s.managed
+
+// this will destroy the secret because it uses the original one
+val managedDestroy: ZManaged[Any, Throwable, String] = s.managedDestroy
+
+// this will destroy the secret because it uses the original one
+val managedFromValue: ZManaged[Any, Throwable, String] = Secret.managed("password")
 ```
 
 #### Pureconfig
@@ -120,6 +153,16 @@ libraryDependencies += "com.github.geirolz" %% "secret-circe" % "@VERSION@"
 ```
 ```scala mdoc:reset
 import com.geirolz.secret.circe.given
+```
+
+#### ZIO JSON
+Provides the json `JsonDecoder`, `JsonEncoder`, and `JsonCodec` instances for `Secret[T]` and `OneShotSecret[T]` types.
+
+```sbt
+libraryDependencies += "com.github.geirolz" %% "secret-zio-json" % "@VERSION@"
+```
+```scala mdoc:reset
+import com.geirolz.secret.ziojson.given
 ```
 
 #### Cats-xml
